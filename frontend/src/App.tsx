@@ -761,6 +761,13 @@ const App: React.FC = () => {
                             <span className={`material-symbols-outlined ${state === AppState.ACTIVE_READING ? 'filled' : ''}`}>timer</span>
                             <span className={`text-sm ${state === AppState.ACTIVE_READING ? 'font-semibold' : 'font-medium'}`}>Leitura Ativa</span>
                         </button>
+                        <button
+                            onClick={() => setState(AppState.NOTES)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${state === AppState.NOTES ? 'bg-primary/10 text-primary' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
+                        >
+                            <span className={`material-symbols-outlined ${state === AppState.NOTES ? 'filled' : ''}`}>edit_note</span>
+                            <span className={`text-sm ${state === AppState.NOTES ? 'font-semibold' : 'font-medium'}`}>Notas e Flashcards</span>
+                        </button>
                         <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <span className="material-symbols-outlined">bar_chart</span>
                             <span className="text-sm font-medium">Estatísticas</span>
@@ -791,43 +798,45 @@ const App: React.FC = () => {
 
             {/* MAIN CONTENT AREA */}
             <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light">
-                {/* DYNAMIC HEADER */}
-                <header className="bg-white/80 dark:bg-[#151f2b]/80 backdrop-blur-md sticky top-0 z-10 px-8 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-6">
-                    <div className="flex items-center lg:hidden gap-2">
-                        <span className="material-symbols-outlined text-primary text-2xl filled">auto_stories</span>
-                        <h1 className="text-slate-900 dark:text-white font-bold">MYINK</h1>
-                    </div>
-                    <div className="flex-1 max-w-xl hidden md:block">
-                        <label className="relative flex items-center w-full">
-                            <span className="absolute left-4 text-slate-400 material-symbols-outlined">search</span>
-                            <input
-                                className="form-input w-full rounded-full border-none bg-slate-100 dark:bg-slate-800 py-2.5 pl-12 pr-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20"
-                                placeholder="Buscar título, autor ou ISBN..."
-                                type="text"
-                                value={headerSearchInput}
-                                onChange={(e) => setHeaderSearchInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as any, headerSearchInput)}
-                            />
-                        </label>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button
-                            className="relative p-2 text-slate-500 hover:text-primary transition-colors"
-                            onClick={() => setIsScannerOpen(true)}
-                        >
-                            <span className="material-symbols-outlined">barcode_scanner</span>
-                        </button>
-                        <button className="relative p-2 text-slate-500 hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined">notifications</span>
-                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-[#151f2b]"></span>
-                        </button>
-                        <div className="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => user ? handleLogout() : setShowAuthModal(true)}>
-                            <img alt="Profile" className="h-full w-full object-cover" src={user?.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBh_4rDeneiWH-R1cD5Qb8eQOrx-aFCF8nMgbfahXsEi3eXwhE75xwLqCvXL4AmizYCLN8maOe9FYy1IP3QB6mUMEyFFfk42Cio0xM1Nwqafeuvul8ZUS8Vxzvg-JWETYJNm_2iv7aBP5GTasCCmixwpudZGucvYOH1kPo-ZJirOSadwJUY4V4dqW2UunGUghl1qqi5SAkeBkS1aOTU9L0gaF7W_lSyUnTZnXmkMH3YZbRYJU4YaP5Jao3naRFXIKaSJ1gvRtgqnxN7"} />
+                {/* DYNAMIC HEADER - Hidden in NOTES view as it has its own header */}
+                {state !== AppState.NOTES && (
+                    <header className="bg-white/80 dark:bg-[#151f2b]/80 backdrop-blur-md sticky top-0 z-10 px-8 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-6">
+                        <div className="flex items-center lg:hidden gap-2">
+                            <span className="material-symbols-outlined text-primary text-2xl filled">auto_stories</span>
+                            <h1 className="text-slate-900 dark:text-white font-bold">MYINK</h1>
                         </div>
-                    </div>
-                </header>
+                        <div className="flex-1 max-w-xl hidden md:block">
+                            <label className="relative flex items-center w-full">
+                                <span className="absolute left-4 text-slate-400 material-symbols-outlined">search</span>
+                                <input
+                                    className="form-input w-full rounded-full border-none bg-slate-100 dark:bg-slate-800 py-2.5 pl-12 pr-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20"
+                                    placeholder="Buscar título, autor ou ISBN..."
+                                    type="text"
+                                    value={headerSearchInput}
+                                    onChange={(e) => setHeaderSearchInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as any, headerSearchInput)}
+                                />
+                            </label>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <button
+                                className="relative p-2 text-slate-500 hover:text-primary transition-colors"
+                                onClick={() => setIsScannerOpen(true)}
+                            >
+                                <span className="material-symbols-outlined">barcode_scanner</span>
+                            </button>
+                            <button className="relative p-2 text-slate-500 hover:text-primary transition-colors">
+                                <span className="material-symbols-outlined">notifications</span>
+                                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-[#151f2b]"></span>
+                            </button>
+                            <div className="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => user ? handleLogout() : setShowAuthModal(true)}>
+                                <img alt="Profile" className="h-full w-full object-cover" src={user?.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBh_4rDeneiWH-R1cD5Qb8eQOrx-aFCF8nMgbfahXsEi3eXwhE75xwLqCvXL4AmizYCLN8maOe9FYy1IP3QB6mUMEyFFfk42Cio0xM1Nwqafeuvul8ZUS8Vxzvg-JWETYJNm_2iv7aBP5GTasCCmixwpudZGucvYOH1kPo-ZJirOSadwJUY4V4dqW2UunGUghl1qqi5SAkeBkS1aOTU9L0gaF7W_lSyUnTZnXmkMH3YZbRYJU4YaP5Jao3naRFXIKaSJ1gvRtgqnxN7"} />
+                            </div>
+                        </div>
+                    </header>
+                )}
 
-                <div className="flex-grow overflow-y-auto pt-4 pb-20 px-6 container mx-auto custom-scrollbar relative z-10">
+                <div className={`flex-grow overflow-y-auto ${state === AppState.NOTES ? '' : 'pt-4 pb-20 px-6'} container mx-auto custom-scrollbar relative z-10 ${state === AppState.NOTES ? 'px-0 pb-0 h-full max-w-full' : ''}`}>
                     <AnimatePresence mode="wait">
                         {state === AppState.IDLE && (
                             <motion.div
@@ -1564,6 +1573,65 @@ const App: React.FC = () => {
                         {state === AppState.SHELF && (
                             <motion.div
                                 key="shelf"
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                className="space-y-8"
+                            >
+                                <div className="flex items-center justify-between mb-8">
+                                    <div>
+                                        <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">Minha Estante</h2>
+                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Gerencie seus livros e progressos</p>
+                                    </div>
+                                    <button className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[18px]">add</span>
+                                        Novo Livro
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                                    {/* Mock Book Card - O Grande Gatsby */}
+                                    <div
+                                        onClick={() => setState(AppState.NOTES)}
+                                        className="group cursor-pointer flex flex-col gap-4"
+                                    >
+                                        <div className="aspect-[2/3] rounded-[24px] overflow-hidden relative shadow-md group-hover:shadow-xl transition-all group-hover:-translate-y-2">
+                                            <img
+                                                src={data?.coverUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuCI5te6m579eu45ys0snCH7fz7XVxa3vIdoFVs9wOaN8FoIb6B0LZl0phQXfCK-6-t8pPyxGDmoL9TlfTThmHVRqggCq4GYay_Da7zClu8JEVLPolpaI87NSsDiSBnV29kYe6peExaatYQquyCQnN5rY-A6Gao7o_0E1bL08PPKA1RNUOweVl3bGTsd19afUm9hwUngM0m5uSipPtc_Pq0s258xKG975XoJFBg_TXzpJUtRssEpEV7WoO5XiTVOAzddXD8Vx43LYUvS"}
+                                                alt="O Grande Gatsby"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                            <div className="absolute top-3 right-3 bg-white/90 dark:bg-black/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
+                                                45%
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight mb-1 truncate uppercase tracking-tight">O Grande Gatsby</h3>
+                                            <p className="text-xs font-bold text-slate-400 dark:text-text-secondary uppercase tracking-wider truncate">F. Scott Fitzgerald</p>
+                                        </div>
+                                    </div>
+                                    {/* Placeholder Books for Visual Grid */}
+                                    {[1, 2, 3].map((i) => (
+                                        <div key={i} className="group cursor-pointer flex flex-col gap-4 opacity-50 hover:opacity-100 transition-opacity">
+                                            <div className="aspect-[2/3] rounded-[24px] bg-slate-100 dark:bg-surface-input/10 flex items-center justify-center relative border-2 border-dashed border-slate-200 dark:border-surface-input/20">
+                                                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-surface-input">book_2</span>
+                                            </div>
+                                            <div>
+                                                <div className="h-4 bg-slate-100 dark:bg-surface-input/20 rounded w-3/4 mb-2" />
+                                                <div className="h-3 bg-slate-100 dark:bg-surface-input/20 rounded w-1/2" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+
+
+
+                        {state === AppState.NOTES && (
+                            <motion.div
+                                key="notes"
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0 }}
@@ -1824,26 +1892,17 @@ const App: React.FC = () => {
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                                            <div className="size-32 bg-slate-50 dark:bg-surface-input/30 rounded-[48px] flex items-center justify-center mb-10 text-primary/40 group">
-                                                <span className="material-symbols-outlined text-[64px] animate-pulse">menu_book</span>
+                                        <div className="flex flex-col items-center justify-center h-full text-slate-300 dark:text-surface-input p-12 text-center opacity-60">
+                                            <div className="size-32 bg-slate-50 dark:bg-surface-input/20 rounded-full flex items-center justify-center mb-6">
+                                                <span className="material-symbols-outlined text-6xl opacity-50">edit_note</span>
                                             </div>
-                                            <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight">Abra um Registro</h3>
-                                            <p className="max-w-md text-slate-500 dark:text-text-secondary font-bold uppercase tracking-[0.1em] leading-relaxed text-xs">
-                                                Selecione uma nota na lista lateral para visualizar ou editar seu conteúdo. Transforme sua leitura em conhecimento pragmático.
-                                            </p>
-                                            <button
-                                                onClick={handleNewNote}
-                                                className="mt-12 px-10 py-5 bg-primary text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-3"
-                                            >
-                                                <span className="material-symbols-outlined text-[20px]">add_circle</span>
-                                                Criar Primeiro Registro
-                                            </button>
+                                            <p className="text-sm font-black uppercase tracking-[0.2em] max-w-xs">Selecione uma nota para editar ou crie uma nova</p>
                                         </div>
                                     )}
                                 </div>
                             </motion.div>
                         )}
+
 
                         {state === AppState.ACTIVE_READING && (
                             <motion.div
@@ -1985,6 +2044,207 @@ const App: React.FC = () => {
                                                     value={quickSessionNote}
                                                     onChange={(e) => setQuickSessionNote(e.target.value)}
                                                 ></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {state === AppState.NOTES && (
+                            <motion.div
+                                key="notes"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="h-full flex flex-col bg-background-light dark:bg-background-dark font-sans"
+                            >
+                                <header className="bg-white/80 dark:bg-[#151f2b]/80 backdrop-blur-md sticky top-0 z-10 px-8 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-6 shrink-0">
+                                    <div className="flex items-center lg:hidden gap-2">
+                                        <span className="material-symbols-outlined text-primary text-2xl filled">auto_stories</span>
+                                        <h1 className="text-slate-900 dark:text-white font-bold">MYINK</h1>
+                                    </div>
+                                    <div className="hidden md:flex items-center gap-2 text-sm text-slate-500">
+                                        <span className="hover:text-primary cursor-pointer transition-colors" onClick={() => setState(AppState.SHELF)}>Minha Estante</span>
+                                        <span className="material-symbols-outlined text-base">chevron_right</span>
+                                        <span className="font-medium text-slate-900 dark:text-white">O Grande Gatsby</span>
+                                    </div>
+                                    <div className="flex-1 max-w-xl hidden lg:block">
+                                        <label className="relative flex items-center w-full">
+                                            <span className="absolute left-4 text-slate-400 material-symbols-outlined">search</span>
+                                            <input className="form-input w-full rounded-full border-none bg-slate-100 dark:bg-slate-800 py-2.5 pl-12 pr-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20" placeholder="Pesquisar em todo o site..." type="text" />
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <button className="relative p-2 text-slate-500 hover:text-primary transition-colors">
+                                            <span className="material-symbols-outlined">notifications</span>
+                                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-[#151f2b]"></span>
+                                        </button>
+                                        <div className="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => user ? handleLogout() : setShowAuthModal(true)}>
+                                            <img alt="Perfil" className="h-full w-full object-cover" src={user?.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBh_4rDeneiWH-R1cD5Qb8eQOrx-aFCF8nMgbfahXsEi3eXwhE75xwLqCvXL4AmizYCLN8maOe9FYy1IP3QB6mUMEyFFfk42Cio0xM1Nwqafeuvul8ZUS8Vxzvg-JWETYJNm_2iv7aBP5GTasCCmixwpudZGucvYOH1kPo-ZJirOSadwJUY4V4dqW2UunGUghl1qqi5SAkeBkS1aOTU9L0gaF7W_lSyUnTZnXmkMH3YZbRYJU4YaP5Jao3naRFXIKaSJ1gvRtgqnxN7"} />
+                                        </div>
+                                    </div>
+                                </header>
+
+                                <div className="flex-1 overflow-hidden flex flex-col lg:flex-row bg-slate-50/50 dark:bg-[#0d141c]">
+                                    {/* Notes List Column */}
+                                    <div className="w-full lg:w-[400px] flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#151f2b] h-full">
+                                        <div className="p-6 border-b border-slate-200 dark:border-slate-800">
+                                            <div className="flex gap-4">
+                                                <div className="w-16 h-24 rounded shadow-md overflow-hidden shrink-0 relative group cursor-pointer">
+                                                    <img alt="Book Cover" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCI5te6m579eu45ys0snCH7fz7XVxa3vIdoFVs9wOaN8FoIb6B0LZl0phQXfCK-6-t8pPyxGDmoL9TlfTThmHVRqggCq4GYay_Da7zClu8JEVLPolpaI87NSsDiSBnV29kYe6peExaatYQquyCQnN5rY-A6Gao7o_0E1bL08PPKA1RNUOweVl3bGTsd19afUm9hwUngM0m5uSipPtc_Pq0s258xKG975XoJFBg_TXzpJUtRssEpEV7WoO5XiTVOAzddXD8Vx43LYUvS" />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                                                </div>
+                                                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">O Grande Gatsby</h2>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">F. Scott Fitzgerald</p>
+                                                    <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                                        <div className="bg-emerald-500 h-full w-[45%]"></div>
+                                                    </div>
+                                                    <p className="text-xs text-slate-400 mt-1">45% Concluído</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 space-y-4">
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-2.5 text-slate-400 material-symbols-outlined text-lg">filter_list</span>
+                                                <input className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-slate-400 text-slate-900 dark:text-white" placeholder="Buscar nas notas..." type="text" />
+                                            </div>
+                                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                                <button className="px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-medium rounded-full whitespace-nowrap">Todas</button>
+                                                <button className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium rounded-full whitespace-nowrap">Flashcards</button>
+                                                <button className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium rounded-full whitespace-nowrap">Resumos</button>
+                                                <button className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium rounded-full whitespace-nowrap">Vocabulário</button>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                                            <div className="group p-4 rounded-xl bg-primary/5 border border-primary/20 cursor-pointer relative hover:shadow-sm transition-all">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Nota</span>
+                                                    <span className="text-xs text-slate-400">Há 2h</span>
+                                                </div>
+                                                <h3 className="font-semibold text-slate-900 dark:text-white mb-1 truncate">A luz verde e seu significado</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">A luz verde no final do cais de Daisy representa o sonho inatingível de Gatsby e a esperança no futuro...</p>
+                                            </div>
+                                            <div className="group p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-primary/50 transition-all">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">Flashcard</span>
+                                                    <span className="text-xs text-slate-400">Ontem</span>
+                                                </div>
+                                                <h3 className="font-semibold text-slate-900 dark:text-white mb-1 truncate">Vocabulário: Supercilious</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">F: O que significa 'supercilious'? V: Arrogante, que age como se fosse superior aos outros.</p>
+                                            </div>
+                                            <div className="group p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-primary/50 transition-all">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">Personagem</span>
+                                                    <span className="text-xs text-slate-400">22 Out</span>
+                                                </div>
+                                                <h3 className="font-semibold text-slate-900 dark:text-white mb-1 truncate">Nick Carraway - Observador</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">Nick se posiciona como um narrador neutro, mas suas opiniões moldam nossa visão de Gatsby.</p>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 border-t border-slate-200 dark:border-slate-800 lg:hidden">
+                                            <button className="w-full py-2.5 bg-primary text-white rounded-lg font-medium shadow-sm hover:bg-primary/90 flex items-center justify-center gap-2">
+                                                <span className="material-symbols-outlined text-lg">add</span>
+                                                Nova Nota
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Editor Column */}
+                                    <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                                        <div className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#151f2b] px-6 flex items-center justify-between shrink-0">
+                                            <div className="flex items-center gap-3">
+                                                <button className="lg:hidden p-2 -ml-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                                                    <span className="material-symbols-outlined">menu</span>
+                                                </button>
+                                                <span className="text-sm text-slate-500 dark:text-slate-400 hidden sm:inline">Editando nota</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <button className="text-slate-500 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20" title="Excluir">
+                                                    <span className="material-symbols-outlined">delete</span>
+                                                </button>
+                                                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                                                <button className="text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Cancelar</button>
+                                                <button className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-lg">save</span>
+                                                    Salvar
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-background-light dark:bg-[#0d141c]">
+                                            <div className="max-w-3xl mx-auto space-y-6">
+                                                <div className="bg-white dark:bg-[#151f2b] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                                                    <div>
+                                                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Título</label>
+                                                        <input className="w-full text-xl font-bold border-none p-0 focus:ring-0 text-slate-900 dark:text-white bg-transparent placeholder:text-slate-300" placeholder="Título da sua nota..." type="text" defaultValue="A luz verde e seu significado" />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <div>
+                                                            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tipo</label>
+                                                            <div className="relative">
+                                                                <select className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5">
+                                                                    <option selected="">Nota Livre</option>
+                                                                    <option>Flashcard</option>
+                                                                </select>
+                                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                                                    <span className="material-symbols-outlined text-lg">expand_more</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Categoria</label>
+                                                            <div className="relative">
+                                                                <select className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5">
+                                                                    <option>Geral</option>
+                                                                    <option selected="">Análise</option>
+                                                                    <option>Personagem</option>
+                                                                    <option>Vocabulário</option>
+                                                                    <option>Citação</option>
+                                                                </select>
+                                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                                                    <span className="material-symbols-outlined text-lg">expand_more</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Página</label>
+                                                            <div className="relative">
+                                                                <input className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-lg focus:ring-primary focus:border-primary block p-2.5" placeholder="ex: 42" type="number" defaultValue="152" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-white dark:bg-[#151f2b] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+                                                    <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center gap-1 flex-wrap">
+                                                        <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400 transition-colors" title="Bold"><span className="material-symbols-outlined text-lg">format_bold</span></button>
+                                                        <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400 transition-colors" title="Italic"><span className="material-symbols-outlined text-lg">format_italic</span></button>
+                                                        <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400 transition-colors" title="Underline"><span className="material-symbols-outlined text-lg">format_underlined</span></button>
+                                                        <div className="w-px h-5 bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                                                        <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400 transition-colors" title="List"><span className="material-symbols-outlined text-lg">format_list_bulleted</span></button>
+                                                        <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400 transition-colors" title="Numbered List"><span className="material-symbols-outlined text-lg">format_list_numbered</span></button>
+                                                        <div className="w-px h-5 bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                                                        <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400 transition-colors" title="Link"><span className="material-symbols-outlined text-lg">link</span></button>
+                                                        <button className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400 transition-colors" title="Image"><span className="material-symbols-outlined text-lg">image</span></button>
+                                                    </div>
+                                                    <div className="flex-1 p-6">
+                                                        <textarea className="w-full h-full border-none focus:ring-0 bg-transparent text-slate-700 dark:text-slate-300 resize-none leading-relaxed" placeholder="Escreva sua nota aqui..." defaultValue="A luz verde no final do cais de Daisy representa o sonho inatingível de Gatsby e a esperança no futuro.&#10;Ela simboliza não apenas Daisy, mas o desejo humano de alcançar algo que está sempre 'logo ali', mas nunca é plenamente conquistado.&#10;Contexto da página 152: Gatsby está olhando para a luz após o reencontro."></textarea>
+                                                    </div>
+                                                    <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center gap-2 flex-wrap">
+                                                        <span className="text-xs font-semibold text-slate-400 uppercase mr-2">Tags:</span>
+                                                        <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1 group cursor-pointer hover:bg-blue-200 transition-colors">
+                                                            Simbolismo
+                                                            <button className="hover:text-blue-900"><span className="material-symbols-outlined text-[14px]">close</span></button>
+                                                        </span>
+                                                        <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1 group cursor-pointer hover:bg-blue-200 transition-colors">
+                                                            Gatsby
+                                                            <button className="hover:text-blue-900"><span className="material-symbols-outlined text-[14px]">close</span></button>
+                                                        </span>
+                                                        <button className="text-slate-400 hover:text-primary transition-colors flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-dashed border-slate-300 hover:border-primary">
+                                                            <span className="material-symbols-outlined text-[14px]">add</span> Adicionar Tag
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
