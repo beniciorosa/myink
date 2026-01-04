@@ -8,6 +8,8 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '20mb' }));
 
+const PORT = process.env.PORT || 3001;
+
 app.get("/api/health", (req, res) => {
     res.json({ status: "ok", env: process.env.NODE_ENV });
 });
