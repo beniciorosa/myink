@@ -40,6 +40,8 @@ const App: React.FC = () => {
     const [favorites, setFavorites] = useState<any[]>([]);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [showFavoritesModal, setShowFavoritesModal] = useState(false);
+    const synopsisRef = React.useRef<HTMLDivElement>(null);
+    const [hasOverflow, setHasOverflow] = useState(false);
 
     // Load history and favorites on mount
     useEffect(() => {
@@ -108,8 +110,23 @@ const App: React.FC = () => {
             root.classList.remove('dark');
             root.style.colorScheme = 'light';
         }
-        console.log("Theme updated. classList has dark:", root.classList.contains('dark'));
     }, [isDark]);
+
+    useEffect(() => {
+        if (state === AppState.SUMMARY && synopsisRef.current) {
+            const checkOverflow = () => {
+                if (synopsisRef.current) {
+                    // Check if content height exceeds the h-72 threshold (approx 288px)
+                    const isOverflowing = synopsisRef.current.scrollHeight > 290;
+                    setHasOverflow(isOverflowing);
+                }
+            };
+
+            // Re-check after a brief moment for layout/fonts
+            const timer = setTimeout(checkOverflow, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [data, isSummaryExpanded, state]);
 
     const handleSearch = async (e?: React.FormEvent | Event, overrideTitle?: string) => {
         console.log("handleSearch called", { overrideTitle, bookInput, searchFilters });
@@ -847,7 +864,7 @@ const App: React.FC = () => {
                                     </div>
 
                                     {/* Amazon-Style Horizontal Metadata Bar - Refined per User Feedback */}
-                                    <div className="mt-8 flex flex-wrap items-center justify-between gap-y-4 gap-x-10 px-4 bg-gray-50/50 dark:bg-gray-800/20 py-4 rounded-2xl border border-gray-100 dark:border-gray-700/50">
+                                    <div className="mt-8 flex flex-wrap items-center justify-between gap-y-4 gap-x-12 px-4 bg-gray-50/50 dark:bg-gray-800/20 py-4 rounded-2xl border border-gray-100 dark:border-gray-700/50">
                                         {[
                                             { label: 'Autor', value: data.author, icon: User },
                                             { label: 'Ano', value: data.publishDate, icon: Calendar },
@@ -861,9 +878,9 @@ const App: React.FC = () => {
                                                 <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
                                                     <item.icon size={20} className="text-blue-500" />
                                                 </div>
-                                                <div className="flex flex-col -space-y-0.5">
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                                                        {item.label}
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                                        {item.label}:
                                                     </span>
                                                     <span className={`text-[13px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
                                                         {item.value || 'N/A'}
@@ -1005,7 +1022,7 @@ const App: React.FC = () => {
 
                                     <div className="flex-grow text-left flex flex-col h-full self-stretch">
                                         <div className={`relative bg-white dark:bg-gray-800/40 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-500 overflow-hidden ${isReadMore ? 'h-auto' : 'h-72'}`}>
-                                            <div className="p-6 md:p-8">
+                                            <div className="p-6 md:p-8" ref={synopsisRef}>
                                                 <div className="prose dark:prose-invert max-w-none select-text">
                                                     <div className="text-[14px] md:text-[15px] text-gray-600 dark:text-gray-400 leading-[1.6] font-sans space-y-4">
                                                         {(() => {
@@ -1026,8 +1043,8 @@ const App: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Read More Gradient Overlay */}
-                                            {!isReadMore && (
+                                            {/* Read More Gradient Overlay - Only show if hasOverflow */}
+                                            {!isReadMore && hasOverflow && (
                                                 <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white dark:from-gray-800 via-white/80 dark:via-gray-800/80 to-transparent flex items-end justify-center pb-6">
                                                     <button
                                                         onClick={() => setIsReadMore(true)}
@@ -1039,7 +1056,7 @@ const App: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            {isReadMore && (
+                                            {isReadMore && hasOverflow && (
                                                 <div className="flex justify-center pb-8 pt-4">
                                                     <button
                                                         onClick={() => setIsReadMore(false)}
