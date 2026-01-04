@@ -113,6 +113,20 @@ const App: React.FC = () => {
             localStorage.setItem('myink_shelf_notes', JSON.stringify(mockNotes));
         }
 
+        // Mock Book for Active Reading Demo
+        const demoBook: Partial<BookStudyData> = {
+            isbn: '978-85-254-3453-1',
+            title: 'O Grande Gatsby',
+            author: 'F. Scott Fitzgerald',
+            publisher: 'L&PM Pocket',
+            pages: 218,
+            coverUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCI5te6m579eu45ys0snCH7fz7XVxa3vIdoFVs9wOaN8FoIb6B0LZl0phQXfCK-6-t8pPyxGDmoL9TlfTThmHVRqggCq4GYay_Da7zClu8JEVLPolpaI87NSsDiSBnV29kYe6peExaatYQquyCQnN5rY-A6Gao7o_0E1bL08PPKA1RNUOweVl3bGTsd19afUm9hwUngM0m5uSipPtc_Pq0s258xKG975XoJFBg_TXzpJUtRssEpEV7WoO5XiTVOAzddXD8Vx43LYUvS'
+        };
+
+        if (!data) {
+            setData(demoBook);
+        }
+
         setIsDark(false);
         document.documentElement.classList.remove('dark');
         document.body.classList.remove('dark');
@@ -701,126 +715,115 @@ const App: React.FC = () => {
     return (
         <div className={`flex h-screen w-full font-sans antialiased overflow-hidden ${isDark ? 'dark' : 'light'} bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-300`}>
             {/* SIDEBAR */}
-            <aside className="w-64 bg-white dark:bg-surface-dark border-r border-slate-200 dark:border-surface-input/30 shrink-0 hidden lg:flex flex-col justify-between shadow-sm transition-colors">
-                <div className="flex flex-col gap-8 p-6">
-                    {/* Brand */}
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={reset}>
-                        <div className="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
-                            <span className="material-symbols-outlined filled">local_library</span>
+            <aside className="w-64 bg-white dark:bg-[#151f2b] border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between h-full z-20 shrink-0 hidden lg:flex">
+                <div className="flex flex-col p-6 h-full">
+                    <div className="flex flex-col mb-10">
+                        <div className="flex items-center gap-2" onClick={reset}>
+                            <span className="material-symbols-outlined text-primary text-3xl filled">auto_stories</span>
+                            <h1 className="text-slate-900 dark:text-white text-xl font-bold tracking-tight">MYINK</h1>
                         </div>
-                        <div className="flex flex-col">
-                            <h1 className="text-slate-900 dark:text-white text-lg font-bold leading-none tracking-tight">MYINK</h1>
-                            <p className="text-slate-500 dark:text-text-secondary text-xs font-medium">Reading Guide</p>
-                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-medium ml-9">Seu Guia de Leitura</p>
                     </div>
-
-                    {/* Navigation */}
-                    <nav className="flex flex-col gap-2">
+                    <nav className="flex flex-col gap-2 flex-1">
                         <button
                             onClick={() => setState(AppState.IDLE)}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${state === AppState.IDLE ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white'}`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${state === AppState.IDLE ? 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
                         >
-                            <span className={`material-symbols-outlined text-[20px] ${state === AppState.IDLE ? 'filled' : ''}`}>dashboard</span>
-                            <p className="text-sm font-semibold tracking-tight">Dashboard</p>
+                            <span className="material-symbols-outlined">dashboard</span>
+                            <span className="text-sm font-medium">Início</span>
                         </button>
                         <button
                             onClick={() => { setState(AppState.SEARCH_RESULTS); setSearchResults([]); }}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${state === AppState.SEARCH_RESULTS ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white'}`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${state === AppState.SEARCH_RESULTS ? 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
                         >
-                            <span className={`material-symbols-outlined text-[20px] ${state === AppState.SEARCH_RESULTS ? 'filled' : ''}`}>explore</span>
-                            <p className="text-sm font-semibold tracking-tight">Explorar</p>
+                            <span className="material-symbols-outlined">search</span>
+                            <span className="text-sm font-medium">Explorar</span>
                         </button>
                         <button
                             onClick={() => setState(AppState.SHELF)}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${state === AppState.SHELF ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white'}`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${state === AppState.SHELF ? 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
                         >
-                            <span className={`material-symbols-outlined text-[20px] ${state === AppState.SHELF ? 'filled' : ''}`}>library_books</span>
-                            <p className="text-sm font-semibold tracking-tight">Minha Estante</p>
-                        </button>
-                        <div className="my-2 border-t border-slate-100 dark:border-surface-input/10" />
-                        <button
-                            onClick={() => setState(AppState.ACTIVE_READING)}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${state === AppState.ACTIVE_READING ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white'}`}
-                        >
-                            <span className={`material-symbols-outlined text-[20px] ${state === AppState.ACTIVE_READING ? 'filled' : ''}`}>timer</span>
-                            <p className="text-sm font-semibold tracking-tight">Leitura Ativa</p>
+                            <span className="material-symbols-outlined">library_books</span>
+                            <span className="text-sm font-medium">Minha Biblioteca</span>
                         </button>
                         <button
                             onClick={() => setShowFavoritesModal(true)}
-                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white transition-colors group"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
                         >
-                            <span className="material-symbols-outlined text-[20px]">favorite</span>
-                            <p className="text-sm font-medium">Favoritos</p>
+                            <span className="material-symbols-outlined">favorite</span>
+                            <span className="text-sm font-medium">Lista de Desejos</span>
+                        </button>
+                        <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+                        <button
+                            onClick={() => setState(AppState.ACTIVE_READING)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${state === AppState.ACTIVE_READING ? 'bg-primary/10 text-primary' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
+                        >
+                            <span className={`material-symbols-outlined ${state === AppState.ACTIVE_READING ? 'filled' : ''}`}>timer</span>
+                            <span className={`text-sm ${state === AppState.ACTIVE_READING ? 'font-semibold' : 'font-medium'}`}>Leitura Ativa</span>
+                        </button>
+                        <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <span className="material-symbols-outlined">bar_chart</span>
+                            <span className="text-sm font-medium">Estatísticas</span>
                         </button>
                         <button
                             onClick={() => setShowHistoryModal(true)}
-                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white transition-colors group"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
                         >
-                            <span className="material-symbols-outlined text-[20px]">history</span>
-                            <p className="text-sm font-medium">Histórico</p>
+                            <span className="material-symbols-outlined">history</span>
+                            <span className="text-sm font-medium">Histórico</span>
                         </button>
                     </nav>
-                </div>
-
-                <div className="p-6 border-t border-slate-100 dark:border-surface-input/30 flex flex-col gap-4">
-                    <button
-                        onClick={() => setIsDark(!isDark)}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white transition-colors group"
-                    >
-                        <span className="material-symbols-outlined text-[20px] transition-transform duration-500">{isDark ? 'light_mode' : 'dark_mode'}</span>
-                        <p className="text-sm font-medium">{isDark ? 'Light' : 'Dark'}</p>
-                    </button>
-                    {user ? (
-                        <div className="flex items-center gap-3 px-2">
-                            <div className="bg-center bg-no-repeat bg-cover rounded-full size-10 ring-2 ring-primary/20 border-2 border-white dark:border-surface-dark shadow-sm" style={{ backgroundImage: `url(${user.user_metadata?.avatar_url || 'https://lh3.googleusercontent.com/a/default-user'})` }}></div>
-                            <div className="flex flex-col overflow-hidden">
-                                <p className="text-slate-900 dark:text-white text-xs font-bold truncate">{user.email?.split('@')[0]}</p>
-                                <button onClick={handleLogout} className="text-primary text-[10px] font-bold uppercase tracking-wider text-left hover:underline">Sair</button>
-                            </div>
-                        </div>
-                    ) : (
+                    <div className="mt-auto">
                         <button
-                            onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
-                            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all group"
+                            onClick={() => setIsDark(!isDark)}
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors w-full text-left"
                         >
-                            <span className="material-symbols-outlined text-[20px] filled">account_circle</span>
-                            <p className="text-sm font-bold">Entrar</p>
+                            <span className="material-symbols-outlined">{isDark ? 'light_mode' : 'dark_mode'}</span>
+                            <span className="text-sm font-medium">Modo {isDark ? 'Claro' : 'Escuro'}</span>
                         </button>
-                    )}
+                        <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors w-full text-left">
+                            <span className="material-symbols-outlined">settings</span>
+                            <span className="text-sm font-medium">Configurações</span>
+                        </button>
+                    </div>
                 </div>
             </aside>
 
             {/* MAIN CONTENT AREA */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+            <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light">
                 {/* DYNAMIC HEADER */}
-                <header className="flex items-center justify-between gap-6 px-8 py-5 bg-white/80 dark:bg-background-dark/95 backdrop-blur-md z-20 sticky top-0 border-b border-slate-100 dark:border-surface-input/30">
-                    <div className="flex-1">
-                        <h2 className="text-slate-900 dark:text-white text-xl font-black tracking-tight leading-none uppercase">
-                            {state === AppState.IDLE && (user ? `Painel` : 'Bem-vindo')}
-                            {state === AppState.SEARCH_RESULTS && 'Explorar'}
-                            {state === AppState.SUMMARY && 'Resumo do Livro'}
-                        </h2>
+                <header className="bg-white/80 dark:bg-[#151f2b]/80 backdrop-blur-md sticky top-0 z-10 px-8 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-6">
+                    <div className="flex items-center lg:hidden gap-2">
+                        <span className="material-symbols-outlined text-primary text-2xl filled">auto_stories</span>
+                        <h1 className="text-slate-900 dark:text-white font-bold">MYINK</h1>
                     </div>
-
-                    {/* Header Controls: Search & Scanner */}
-                    <div className="flex items-center gap-4">
-                        <form onSubmit={(e) => handleSearch(e, headerSearchInput)} className="relative group hidden sm:block">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-[20px] group-focus-within:text-primary transition-colors">search</span>
+                    <div className="flex-1 max-w-xl hidden md:block">
+                        <label className="relative flex items-center w-full">
+                            <span className="absolute left-4 text-slate-400 material-symbols-outlined">search</span>
                             <input
+                                className="form-input w-full rounded-full border-none bg-slate-100 dark:bg-slate-800 py-2.5 pl-12 pr-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20"
+                                placeholder="Buscar título, autor ou ISBN..."
                                 type="text"
                                 value={headerSearchInput}
                                 onChange={(e) => setHeaderSearchInput(e.target.value)}
-                                className="w-full min-w-[320px] pl-12 pr-4 py-2.5 bg-slate-100 dark:bg-surface-input rounded-full text-sm text-slate-900 dark:text-white border-none focus:ring-2 focus:ring-primary/20 transition-all font-sans"
-                                placeholder="Busca global por título, autor..."
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as any, headerSearchInput)}
                             />
-                        </form>
+                        </label>
+                    </div>
+                    <div className="flex items-center gap-4">
                         <button
+                            className="relative p-2 text-slate-500 hover:text-primary transition-colors"
                             onClick={() => setIsScannerOpen(true)}
-                            className="p-2.5 rounded-xl bg-slate-100 dark:bg-surface-input text-slate-600 dark:text-text-secondary hover:text-primary transition-all border border-transparent hover:border-primary/20"
-                            title="Escanear Código de Barras"
                         >
-                            <span className="material-symbols-outlined text-[20px]">barcode_scanner</span>
+                            <span className="material-symbols-outlined">barcode_scanner</span>
                         </button>
+                        <button className="relative p-2 text-slate-500 hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined">notifications</span>
+                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-[#151f2b]"></span>
+                        </button>
+                        <div className="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => user ? handleLogout() : setShowAuthModal(true)}>
+                            <img alt="Profile" className="h-full w-full object-cover" src={user?.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBh_4rDeneiWH-R1cD5Qb8eQOrx-aFCF8nMgbfahXsEi3eXwhE75xwLqCvXL4AmizYCLN8maOe9FYy1IP3QB6mUMEyFFfk42Cio0xM1Nwqafeuvul8ZUS8Vxzvg-JWETYJNm_2iv7aBP5GTasCCmixwpudZGucvYOH1kPo-ZJirOSadwJUY4V4dqW2UunGUghl1qqi5SAkeBkS1aOTU9L0gaF7W_lSyUnTZnXmkMH3YZbRYJU4YaP5Jao3naRFXIKaSJ1gvRtgqnxN7"} />
+                        </div>
                     </div>
                 </header>
 
@@ -1848,159 +1851,140 @@ const App: React.FC = () => {
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="h-full -m-6 flex flex-col bg-background-light dark:bg-background-dark overflow-y-auto custom-scrollbar"
+                                className="p-4 md:p-8 max-w-6xl mx-auto w-full flex flex-col h-full"
                             >
-                                <div className="p-8 max-w-6xl mx-auto w-full flex flex-col gap-8">
-                                    <div className="flex items-center justify-between">
-                                        <button
-                                            onClick={() => setState(AppState.SHELF)}
-                                            className="inline-flex items-center text-sm font-bold text-slate-500 dark:text-text-secondary hover:text-primary transition-colors uppercase tracking-widest"
-                                        >
-                                            <span className="material-symbols-outlined text-lg mr-2">arrow_back</span>
-                                            Voltar para Estante
-                                        </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                                        {/* LEFT INFO COLUMN */}
-                                        <div className="lg:col-span-4 flex flex-col gap-6">
-                                            <div className="bg-white dark:bg-surface-dark rounded-[32px] p-8 border border-slate-100 dark:border-surface-input/20 shadow-xl relative overflow-hidden">
-                                                <div className="absolute -top-4 -right-4 size-32 opacity-5 pointer-events-none">
-                                                    <span className="material-symbols-outlined text-[120px] text-slate-900 dark:text-white">menu_book</span>
-                                                </div>
-                                                <div className="relative z-10 flex flex-col items-center text-center">
-                                                    <div className="w-44 aspect-[2/3] rounded-2xl shadow-2xl overflow-hidden bg-slate-100 mb-8 group cursor-pointer border-4 border-white dark:border-surface-input/20">
-                                                        <img
-                                                            alt="Capa do livro"
-                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                            src={data?.coverUrl || "https://images.unsplash.com/photo-1543005087-b452d3220622?q=80&w=1976&auto=format&fit=crop"}
-                                                        />
-                                                    </div>
-                                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">{data?.title || 'O Grande Gatsby'}</h2>
-                                                    <p className="text-slate-500 dark:text-text-secondary font-bold text-sm uppercase tracking-widest mb-8">{data?.author || 'F. Scott Fitzgerald'}</p>
-                                                    <div className="w-full bg-slate-100 dark:bg-surface-input h-3 rounded-full mb-3 overflow-hidden">
-                                                        <div className="bg-primary h-full rounded-full relative overflow-hidden transition-all duration-1000" style={{ width: '45%' }}>
-                                                            <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex justify-between w-full text-[10px] font-black text-slate-400 dark:text-text-secondary uppercase tracking-[0.2em]">
-                                                        <span>CAPÍTULO ATUAL</span>
-                                                        <span className="text-primary">45%</span>
-                                                    </div>
-                                                </div>
+                                <div className="mb-6">
+                                    <button
+                                        onClick={() => setState(AppState.SHELF)}
+                                        className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-lg mr-1">arrow_back</span>
+                                        Voltar para Biblioteca
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                                    <div className="lg:col-span-4 flex flex-col gap-6">
+                                        <div className="bg-white dark:bg-[#151f2b] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                                <span className="material-symbols-outlined text-8xl text-slate-900 dark:text-white">menu_book</span>
                                             </div>
-
-                                            <div className="bg-primary/5 dark:bg-primary/10 rounded-[32px] p-8 border border-primary/10 dark:border-primary/20">
-                                                <h3 className="text-primary font-black mb-6 flex items-center gap-3 uppercase tracking-widest text-xs">
-                                                    <span className="material-symbols-outlined filled">trending_up</span>
-                                                    Métricas da Sessão
-                                                </h3>
-                                                <div className="space-y-6">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-500 dark:text-text-secondary font-bold text-[10px] uppercase tracking-widest">Páginas lidas</span>
-                                                        <span className="font-black text-slate-900 dark:text-white text-lg">{sessionPagesRead}</span>
+                                            <div className="relative z-10 flex flex-col items-center text-center">
+                                                <div className="w-40 aspect-[2/3] rounded-lg shadow-lg overflow-hidden bg-slate-100 mb-6 group cursor-pointer">
+                                                    <img
+                                                        alt="Capa do livro O Grande Gatsby"
+                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                        src={data?.coverUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuCI5te6m579eu45ys0snCH7fz7XVxa3vIdoFVs9wOaN8FoIb6B0LZl0phQXfCK-6-t8pPyxGDmoL9TlfTThmHVRqggCq4GYay_Da7zClu8JEVLPolpaI87NSsDiSBnV29kYe6peExaatYQquyCQnN5rY-A6Gao7o_0E1bL08PPKA1RNUOweVl3bGTsd19afUm9hwUngM0m5uSipPtc_Pq0s258xKG975XoJFBg_TXzpJUtRssEpEV7WoO5XiTVOAzddXD8Vx43LYUvS"}
+                                                    />
+                                                </div>
+                                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{data?.title || 'O Grande Gatsby'}</h2>
+                                                <p className="text-slate-500 dark:text-slate-400 font-medium mb-6">por {data?.author || 'F. Scott Fitzgerald'}</p>
+                                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 mb-2 overflow-hidden">
+                                                    <div className="bg-primary h-full rounded-full relative overflow-hidden" style={{ width: '45%' }}>
+                                                        <div className="absolute inset-0 bg-white/20"></div>
                                                     </div>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-slate-500 dark:text-text-secondary font-bold text-[10px] uppercase tracking-widest">Ritmo médio</span>
-                                                        <span className="font-black text-slate-900 dark:text-white text-lg">-- min/pág</span>
-                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between w-full text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                                    <span>Capítulo 4</span>
+                                                    <span>45%</span>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {/* MAIN TIMER COLUMN */}
-                                        <div className="lg:col-span-8 flex flex-col gap-6">
-                                            <div className="bg-white dark:bg-surface-dark rounded-[48px] p-12 border border-slate-100 dark:border-surface-input/20 shadow-2xl flex flex-col items-center justify-center min-h-[450px] relative overflow-hidden">
-                                                <div className="absolute top-8 right-8">
-                                                    <span className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-100 dark:border-emerald-800/50 shadow-sm">
-                                                        <span className={`size-2.5 rounded-full bg-emerald-500 ${isTimerRunning ? 'animate-pulse' : ''}`} />
-                                                        {isTimerRunning ? 'Leitura em andamento' : 'Sessão Pausada'}
-                                                    </span>
+                                        <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/20">
+                                            <h3 className="text-blue-900 dark:text-blue-100 font-bold mb-4 flex items-center gap-2">
+                                                <span className="material-symbols-outlined">trending_up</span>
+                                                Sessão Atual
+                                            </h3>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-blue-700 dark:text-blue-300">Páginas lidas</span>
+                                                    <span className="font-bold text-blue-900 dark:text-white">{sessionPagesRead}</span>
                                                 </div>
-
-                                                <div className="text-center mb-16 relative">
-                                                    <div className="font-mono text-[8rem] md:text-[10rem] font-black text-slate-900 dark:text-white tracking-tighter tabular-nums leading-none select-none transition-all">
-                                                        {formatTime(sessionSeconds)}
-                                                    </div>
-                                                    <p className="text-slate-400 dark:text-text-secondary text-xs font-black uppercase tracking-[0.3em] mt-4">Foco Dimensional Ativo</p>
-                                                </div>
-
-                                                <div className="flex items-center gap-8">
-                                                    <button
-                                                        onClick={() => setIsTimerRunning(false)}
-                                                        className="group flex flex-col items-center gap-3 text-slate-400 transition-all hover:scale-105"
-                                                    >
-                                                        <div className="size-20 rounded-full border-2 border-slate-100 dark:border-surface-input/30 bg-white dark:bg-surface-dark hover:border-amber-400 dark:hover:border-amber-500 flex items-center justify-center transition-all shadow-lg">
-                                                            <span className="material-symbols-outlined text-3xl transition-transform filled group-hover:text-amber-500">pause</span>
-                                                        </div>
-                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Pausar</span>
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => setIsTimerRunning(true)}
-                                                        className="group flex flex-col items-center gap-3 transition-all hover:scale-110 active:scale-95 translate-y-[-10px]"
-                                                    >
-                                                        <div className="size-24 rounded-full bg-primary text-white shadow-2xl shadow-primary/40 hover:bg-blue-600 flex items-center justify-center transition-all">
-                                                            <span className="material-symbols-outlined text-[48px] filled">play_arrow</span>
-                                                        </div>
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary italic">Sincronizar</span>
-                                                    </button>
-
-                                                    <button
-                                                        onClick={stopSession}
-                                                        className="group flex flex-col items-center gap-3 text-slate-400 transition-all hover:scale-105"
-                                                    >
-                                                        <div className="size-20 rounded-full border-2 border-slate-100 dark:border-surface-input/30 bg-white dark:bg-surface-dark hover:border-red-400 dark:hover:border-red-500 flex items-center justify-center transition-all shadow-lg">
-                                                            <span className="material-symbols-outlined text-3xl transition-transform filled group-hover:text-red-500">stop</span>
-                                                        </div>
-                                                        <span className="text-[10px) font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Encerrar</span>
-                                                    </button>
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-blue-700 dark:text-blue-300">Ritmo médio</span>
+                                                    <span className="font-bold text-blue-900 dark:text-white">-- min/pág</span>
                                                 </div>
                                             </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div className="bg-white dark:bg-surface-dark rounded-[40px] p-8 border border-slate-100 dark:border-surface-input/20 shadow-xl flex flex-col justify-between">
-                                                    <div>
-                                                        <div className="flex items-center gap-3 mb-2">
-                                                            <span className="material-symbols-outlined text-primary size-8 bg-primary/10 rounded-xl flex items-center justify-center">auto_stories</span>
-                                                            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight">Progresso Dimensional</h3>
-                                                        </div>
-                                                        <p className="text-[10px] font-bold text-slate-400 dark:text-text-secondary uppercase tracking-widest mb-8">Atualize seu marcador temporal</p>
-                                                        <div className="flex items-center gap-4 mb-4">
-                                                            <div className="relative flex-1 group">
-                                                                <input
-                                                                    className="w-full rounded-2xl border-none bg-slate-50 dark:bg-surface-input/50 text-2xl font-black text-slate-900 dark:text-white py-5 px-6 focus:ring-4 focus:ring-primary/10 outline-none transition-all"
-                                                                    placeholder="98"
-                                                                    type="number"
-                                                                    value={sessionPagesRead || ''}
-                                                                    onChange={(e) => setSessionPagesRead(parseInt(e.target.value) || 0)}
-                                                                />
-                                                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">PÁG</span>
-                                                            </div>
-                                                            <div className="text-slate-400 font-black text-xs uppercase tracking-widest">
-                                                                de {data?.pages || 218}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <button className="w-full mt-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-5 rounded-[20px] font-black uppercase tracking-[0.2em] text-[10px] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-xl">
-                                                        <span className="material-symbols-outlined text-[18px]">save</span>
-                                                        Consolidar Página
-                                                    </button>
+                                        </div>
+                                    </div>
+                                    <div className="lg:col-span-8 flex flex-col gap-6">
+                                        <div className="bg-white dark:bg-[#151f2b] rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center min-h-[400px] relative">
+                                            <div className="absolute top-6 right-6">
+                                                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-100 dark:border-emerald-800">
+                                                    <span className={`w-2 h-2 rounded-full bg-emerald-500 ${isTimerRunning ? 'animate-pulse' : ''}`}></span>
+                                                    {isTimerRunning ? 'Leitura em andamento' : 'Sessão Pausada'}
+                                                </span>
+                                            </div>
+                                            <div className="text-center mb-12 relative">
+                                                <div className="font-mono text-8xl md:text-9xl font-bold text-slate-900 dark:text-white tracking-tighter tabular-nums leading-none mb-2 select-none">
+                                                    {formatTime(sessionSeconds)}
                                                 </div>
-
-                                                <div className="bg-white dark:bg-surface-dark rounded-[40px] p-8 border border-slate-100 dark:border-surface-input/20 shadow-xl flex flex-col">
+                                                <p className="text-slate-400 text-sm font-semibold uppercase tracking-[0.2em]">Tempo Decorrido</p>
+                                            </div>
+                                            <div className="flex items-center gap-6">
+                                                <button
+                                                    onClick={() => setIsTimerRunning(false)}
+                                                    className="group flex flex-col items-center gap-2 text-slate-400 hover:text-amber-500 transition-colors"
+                                                >
+                                                    <div className="w-16 h-16 rounded-full border-2 border-slate-100 group-hover:border-amber-100 bg-white group-hover:bg-amber-50 flex items-center justify-center transition-all shadow-sm">
+                                                        <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform filled">pause</span>
+                                                    </div>
+                                                    <span className="text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">Pausar</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => setIsTimerRunning(true)}
+                                                    className="group flex flex-col items-center gap-2 text-slate-400 hover:text-primary transition-colors transform scale-110"
+                                                >
+                                                    <div className="w-20 h-20 rounded-full bg-primary text-white shadow-lg shadow-blue-500/30 hover:bg-blue-600 hover:shadow-blue-600/40 flex items-center justify-center transition-all">
+                                                        <span className="material-symbols-outlined text-4xl filled">play_arrow</span>
+                                                    </div>
+                                                    <span className="text-xs font-semibold uppercase tracking-wider text-primary">Retomar</span>
+                                                </button>
+                                                <button
+                                                    onClick={stopSession}
+                                                    className="group flex flex-col items-center gap-2 text-slate-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <div className="w-16 h-16 rounded-full border-2 border-slate-100 group-hover:border-red-100 bg-white group-hover:bg-red-50 flex items-center justify-center transition-all shadow-sm">
+                                                        <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform filled">stop</span>
+                                                    </div>
+                                                    <span className="text-xs font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">Parar</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-white dark:bg-[#151f2b] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900 dark:text-white mb-1">Registrar Progresso</h3>
+                                                    <p className="text-sm text-slate-500 mb-6">Atualize onde você parou.</p>
                                                     <div className="flex items-center gap-3 mb-2">
-                                                        <span className="material-symbols-outlined text-amber-500 size-8 bg-amber-500/10 rounded-xl flex items-center justify-center">lightbulb</span>
-                                                        <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight">Insights Críticos</h3>
+                                                        <div className="relative flex-1">
+                                                            <input
+                                                                className="form-input w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-lg font-bold text-slate-900 dark:text-white py-3 pl-4 pr-12 focus:ring-primary focus:border-primary"
+                                                                placeholder="98"
+                                                                type="number"
+                                                                value={sessionPagesRead || ''}
+                                                                onChange={(e) => setSessionPagesRead(parseInt(e.target.value) || 0)}
+                                                            />
+                                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium">pág</span>
+                                                        </div>
+                                                        <div className="text-slate-400 font-medium text-sm">
+                                                            de {data?.pages || 218}
+                                                        </div>
                                                     </div>
-                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-text-secondary uppercase tracking-widest mb-6">Capture pensamentos em tempo real</p>
-                                                    <textarea
-                                                        className="w-full flex-1 rounded-2xl border-none bg-amber-50/30 dark:bg-surface-input/30 text-slate-700 dark:text-text-secondary resize-none focus:ring-4 focus:ring-amber-500/10 p-6 text-sm font-medium leading-relaxed placeholder:text-slate-300 dark:placeholder:text-surface-input/50"
-                                                        placeholder="Digite seus pensamentos aqui..."
-                                                        value={quickSessionNote}
-                                                        onChange={(e) => setQuickSessionNote(e.target.value)}
-                                                    />
                                                 </div>
+                                                <button className="w-full mt-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3 rounded-xl font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+                                                    <span className="material-symbols-outlined text-lg">save</span>
+                                                    Salvar Página
+                                                </button>
+                                            </div>
+                                            <div className="bg-white dark:bg-[#151f2b] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+                                                <h3 className="font-bold text-slate-900 dark:text-white mb-1">Notas Rápidas</h3>
+                                                <p className="text-sm text-slate-500 mb-4">Insights durante a leitura.</p>
+                                                <textarea
+                                                    className="form-textarea w-full flex-1 rounded-xl border-slate-200 dark:border-slate-700 bg-amber-50/50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 resize-none focus:ring-amber-200 focus:border-amber-300 placeholder:text-slate-400 text-sm"
+                                                    placeholder="Digite seus pensamentos aqui..."
+                                                    value={quickSessionNote}
+                                                    onChange={(e) => setQuickSessionNote(e.target.value)}
+                                                ></textarea>
                                             </div>
                                         </div>
                                     </div>
