@@ -1,0 +1,35 @@
+# node_modules
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build
+frontend/dist/
+
+# Environment
+.env
+.env.local
+backend/.env
+frontend/.env.local
+
+# Logs and Debug
+*.log
+backend/*.txt
+backend/*.log
+backend/debug-*.js
+backend/test_*.js
+backend/test-*.js
+backend/analyze_*.js
+backend/diag_*.js
+backend/diagnose_*.js
+backend/verify_*.js
+backend/final_*.js
+backend/res_*.json
+backend/res_*.txt
+backend/list-*.js
+backend/output*.txt
+backend/server_logs.txt
+
+# OS
+.DS_Store
+Thumbs.db
