@@ -25,6 +25,7 @@ const App: React.FC = () => {
     const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [sidebarView, setSidebarView] = useState<'info' | 'editions'>('info');
+    const [summaryTab, setSummaryTab] = useState<'synopsis' | 'analysis' | 'notes' | 'details'>('synopsis');
     const [editions, setEditions] = useState<any[]>([]);
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [searchViewMode, setSearchViewMode] = useState<'grid' | 'list'>('grid');
@@ -715,7 +716,7 @@ const App: React.FC = () => {
                     </div>
                 </header>
 
-                <main className="flex-grow pt-20 pb-20 px-6 container mx-auto">
+                <div className="flex-grow overflow-y-auto pt-4 pb-20 px-6 container mx-auto custom-scrollbar relative z-10">
                     <AnimatePresence mode="wait">
                         {state === AppState.IDLE && (
                             <motion.div
@@ -854,175 +855,204 @@ const App: React.FC = () => {
                         {state === AppState.SEARCH_RESULTS && (
                             <motion.div
                                 key="search_results"
-                                initial={{ opacity: 0, scale: 0.95 }}
+                                initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="max-w-6xl mx-auto"
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                className="max-w-7xl mx-auto flex flex-col gap-8"
                             >
-                                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-widest">
-                                            Resultados para: <span className="text-blue-600 dark:text-blue-400">"{lastQuery}"</span>
-                                        </h2>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                            Encontramos {searchResults.length} livros relevantes.
-                                            <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-100 dark:border-blue-800 animate-pulse">
+                                {/* HEADER & CONTROLS */}
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-surface-dark p-6 md:p-8 rounded-[32px] border border-slate-100 dark:border-surface-input/30 shadow-sm">
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-3">
+                                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                                Resultados: <span className="text-target-primary text-primary">"{lastQuery}"</span>
+                                            </h2>
+                                            <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 animate-pulse">
                                                 IA Rerank Ativo
                                             </span>
+                                        </div>
+                                        <p className="text-slate-500 dark:text-text-secondary font-medium italic">
+                                            Encontramos {searchResults.length} obras que podem te interessar.
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
+
+                                    <div className="flex items-center gap-4">
+                                        {/* View Switcher */}
+                                        <div className="flex bg-slate-100 dark:bg-surface-input p-1 rounded-2xl border border-slate-200 dark:border-transparent">
                                             <button
                                                 onClick={() => setSearchViewMode('grid')}
-                                                className={`p-2 rounded-lg transition-all ${searchViewMode === 'grid' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600' : 'text-gray-400'}`}
+                                                className={`p-2.5 rounded-xl transition-all ${searchViewMode === 'grid' ? 'bg-white dark:bg-surface-dark shadow-md text-primary' : 'text-slate-400 hover:text-slate-600'}`}
                                             >
-                                                <Layout size={18} />
+                                                <Layout size={20} />
                                             </button>
                                             <button
                                                 onClick={() => setSearchViewMode('list')}
-                                                className={`p-2 rounded-lg transition-all ${searchViewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600' : 'text-gray-400'}`}
+                                                className={`p-2.5 rounded-xl transition-all ${searchViewMode === 'list' ? 'bg-white dark:bg-surface-dark shadow-md text-primary' : 'text-slate-400 hover:text-slate-600'}`}
                                             >
-                                                <List size={18} />
+                                                <List size={20} />
                                             </button>
                                         </div>
+
                                         <button
                                             onClick={() => setState(AppState.IDLE)}
-                                            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-gray-200 dark:border-gray-700"
+                                            className="px-6 py-3 bg-slate-100 dark:bg-surface-input hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-text-secondary rounded-2xl transition-all font-bold text-xs uppercase tracking-widest border border-slate-200 dark:border-transparent flex items-center gap-2"
                                         >
+                                            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                                             Voltar
                                         </button>
                                     </div>
                                 </div>
 
+                                {/* CATEGORY FILTERS */}
+                                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mr-2 shrink-0">Filtrar por:</span>
+                                    {['Todos', 'Ficção', 'Ciência', 'História', 'Negócios', 'Filosofia', 'Tecnologia'].map(cat => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => { setBookInput(`${lastQuery} ${cat === 'Todos' ? '' : cat}`); handleSearch(null as any, `${lastQuery} ${cat === 'Todos' ? '' : cat}`); }}
+                                            className="px-5 py-2 whitespace-nowrap bg-white dark:bg-surface-dark border border-slate-100 dark:border-surface-input/30 rounded-2xl text-xs font-bold text-slate-600 dark:text-text-secondary hover:text-primary dark:hover:text-white hover:border-primary/40 hover:shadow-md transition-all"
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* RESULTS GRID/LIST */}
                                 {searchViewMode === 'grid' ? (
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                                        {searchResults.map((book) => (
+                                    <motion.div
+                                        layout
+                                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
+                                    >
+                                        {searchResults.map((book, idx) => (
                                             <motion.div
-                                                key={book.id || book.isbn}
-                                                whileHover={{ y: -4 }}
-                                                className="relative group"
+                                                key={book.id || book.isbn || idx}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: idx * 0.05 }}
+                                                className="relative group cursor-pointer"
+                                                onClick={() => handleSelectFromSearch(book)}
                                             >
-                                                <button
-                                                    onClick={() => handleSelectFromSearch(book)}
-                                                    className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-3xl p-3 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all text-left"
-                                                >
-                                                    <div className="aspect-[2/3] rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 mb-3 shadow-md border border-gray-100 dark:border-gray-800 relative group/cover-card">
-                                                        {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
-                                                            <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} referrerPolicy="no-referrer" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex flex-col items-center justify-center p-2 text-[8px] uppercase font-black text-gray-300 dark:text-gray-700 text-center leading-tight tracking-tighter italic">
-                                                                <span>{book.title}</span>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleRetrySearchCover(book.isbn || book.id, book.title, book.author, book.publisher);
-                                                                    }}
-                                                                    className="mt-2 p-1.5 bg-white dark:bg-gray-800 text-blue-600 rounded-full shadow-lg opacity-0 group-hover/cover-card:opacity-100 transition-all border border-gray-100 dark:border-gray-700"
-                                                                    title="Tentar carregar capa"
-                                                                >
-                                                                    <RefreshCcw size={12} className={isGenerating ? 'animate-spin' : ''} />
-                                                                </button>
-                                                            </div>
-                                                        )}
+                                                <div className="relative aspect-[2/3] rounded-[24px] overflow-hidden bg-slate-200 dark:bg-surface-input shadow-lg group-hover:shadow-2xl group-hover:shadow-primary/20 transition-all duration-500 border border-slate-100 dark:border-white/5 ring-0 group-hover:ring-4 ring-primary/10">
+                                                    {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
+                                                        <img
+                                                            src={book.coverUrl}
+                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                            alt={book.title}
+                                                            referrerPolicy="no-referrer"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-surface-input dark:to-surface-dark">
+                                                            <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-[48px] mb-2 font-light italic">book</span>
+                                                            <span className="text-[10px] font-black uppercase text-slate-400 leading-tight line-clamp-3 italic">{book.title}</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Favorite Button on Hover */}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const isFav = favorites.find(f => f.isbn === book.isbn || f.title === book.title);
+                                                            if (isFav) {
+                                                                const newFavs = favorites.filter(f => (f.isbn !== book.isbn && f.title !== book.title));
+                                                                setFavorites(newFavs);
+                                                                localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
+                                                            } else {
+                                                                const newFavs = [...favorites, book];
+                                                                setFavorites(newFavs);
+                                                                localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
+                                                            }
+                                                        }}
+                                                        className={`absolute top-4 right-4 z-20 size-10 rounded-2xl backdrop-blur-md flex items-center justify-center transition-all duration-300 transform scale-90 group-hover:scale-100 ${favorites.find(f => f.isbn === book.isbn || f.title === book.title)
+                                                            ? 'bg-red-500 text-white opacity-100'
+                                                            : 'bg-white/90 dark:bg-black/40 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 shadow-xl'
+                                                            }`}
+                                                    >
+                                                        <Heart size={18} className={favorites.find(f => f.isbn === book.isbn || f.title === book.title) ? 'fill-white' : ''} />
+                                                    </button>
+
+                                                    {/* Overlay info on hover */}
+                                                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest line-clamp-1 italic">{book.author}</p>
                                                     </div>
-                                                    <div className="min-h-[3.25rem] flex flex-col justify-start">
-                                                        <h3 className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
-                                                            {book.title}
-                                                        </h3>
-                                                    </div>
-                                                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">
-                                                        {book.author}
-                                                    </p>
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        // This handles toggling via common favorites state
-                                                        const isFav = favorites.find(f => f.isbn === book.isbn || f.title === book.title);
-                                                        if (isFav) {
-                                                            const newFavs = favorites.filter(f => (f.isbn !== book.isbn && f.title !== book.title));
-                                                            setFavorites(newFavs);
-                                                            localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                        } else {
-                                                            const newFavs = [...favorites, book];
-                                                            setFavorites(newFavs);
-                                                            localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                        }
-                                                    }}
-                                                    className={`absolute top-5 right-5 p-2 rounded-full backdrop-blur-md transition-all shadow-sm ${favorites.find(f => f.isbn === book.isbn || f.title === book.title)
-                                                        ? 'bg-red-500 text-white'
-                                                        : 'bg-white/80 text-gray-400 hover:text-red-500'
-                                                        }`}
-                                                >
-                                                    <Heart size={14} className={favorites.find(f => f.isbn === book.isbn || f.title === book.title) ? 'fill-white' : ''} />
-                                                </button>
+                                                </div>
+
+                                                <div className="mt-4 px-1">
+                                                    <h3 className="text-sm font-black text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-primary transition-colors uppercase tracking-tight">
+                                                        {book.title}
+                                                    </h3>
+                                                    <p className="text-[11px] font-medium text-slate-500 dark:text-text-secondary mt-1 italic">{book.author}</p>
+                                                </div>
                                             </motion.div>
                                         ))}
-                                    </div>
+                                    </motion.div>
                                 ) : (
-                                    <div className="space-y-4 max-w-4xl mx-auto">
-                                        {searchResults.map((book) => (
+                                    <div className="flex flex-col gap-4">
+                                        {searchResults.map((book, idx) => (
                                             <motion.div
-                                                key={book.id || book.isbn}
-                                                whileHover={{ x: 4 }}
-                                                className="relative flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all group"
+                                                key={book.id || book.isbn || idx}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: idx * 0.03 }}
+                                                className="flex items-center gap-6 bg-white dark:bg-surface-dark p-4 rounded-[28px] border border-slate-100 dark:border-surface-input/30 shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 transition-all group cursor-pointer"
+                                                onClick={() => handleSelectFromSearch(book)}
                                             >
-                                                <button
-                                                    onClick={() => handleSelectFromSearch(book)}
-                                                    className="flex flex-grow items-center gap-6 text-left"
-                                                >
-                                                    <div className="w-16 h-24 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 flex-shrink-0 relative group/list-cover">
-                                                        {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
-                                                            <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} referrerPolicy="no-referrer" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex flex-col items-center justify-center p-1 text-[8px] text-gray-400 dark:text-gray-600 text-center uppercase font-black leading-tight italic">
-                                                                <span className="line-clamp-3">{book.title}</span>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleRetrySearchCover(book.isbn || book.id, book.title, book.author, book.publisher);
-                                                                    }}
-                                                                    className="mt-1 p-1 bg-white dark:bg-gray-800 text-blue-600 rounded-full shadow-lg opacity-0 group-hover/list-cover:opacity-100 transition-all"
-                                                                >
-                                                                    <RefreshCcw size={10} className={isGenerating ? 'animate-spin' : ''} />
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-grow min-w-0">
-                                                        <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">
+                                                <div className="w-20 aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-md border border-slate-100 dark:border-white/5 bg-slate-100 dark:bg-surface-input">
+                                                    {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
+                                                        <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} referrerPolicy="no-referrer" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center p-2 text-[8px] text-slate-400 text-center font-black uppercase italic">
                                                             {book.title}
-                                                        </h3>
-                                                        <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">
-                                                            {book.author}
-                                                        </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex flex-col gap-1">
+                                                            <h3 className="text-lg font-black text-slate-900 dark:text-white line-clamp-1 group-hover:text-primary transition-colors uppercase tracking-tight">
+                                                                {book.title}
+                                                            </h3>
+                                                            <p className="text-sm font-bold text-slate-500 dark:text-text-secondary italic">
+                                                                {book.author}
+                                                            </p>
+                                                        </div>
+
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const isFav = favorites.find(f => f.isbn === book.isbn || f.title === book.title);
+                                                                if (isFav) {
+                                                                    const newFavs = favorites.filter(f => (f.isbn !== book.isbn && f.title !== book.title));
+                                                                    setFavorites(newFavs);
+                                                                    localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
+                                                                } else {
+                                                                    const newFavs = [...favorites, book];
+                                                                    setFavorites(newFavs);
+                                                                    localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
+                                                                }
+                                                            }}
+                                                            className={`p-3 rounded-2xl transition-all ${favorites.find(f => f.isbn === book.isbn || f.title === book.title)
+                                                                ? 'bg-red-50 dark:bg-red-500/10 text-red-500'
+                                                                : 'bg-slate-50 dark:bg-surface-input text-slate-300 hover:text-red-500'
+                                                                }`}
+                                                        >
+                                                            <Heart size={20} className={favorites.find(f => f.isbn === book.isbn || f.title === book.title) ? 'fill-red-500' : ''} />
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="mt-4 flex items-center gap-4">
+                                                        <span className="px-3 py-1 bg-slate-100 dark:bg-surface-input/50 rounded-lg text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-text-secondary border border-slate-100 dark:border-transparent">
+                                                            {book.publisher || 'Editora Desconhecida'}
+                                                        </span>
                                                         {book.isbn && (
-                                                            <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-2 uppercase font-semibold italic">ISBN: {book.isbn}</p>
+                                                            <span className="text-[10px] font-bold text-slate-400 dark:text-text-secondary/50 uppercase italic tracking-tighter">ISBN: {book.isbn}</span>
                                                         )}
                                                     </div>
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const isFav = favorites.find(f => f.isbn === book.isbn || f.title === book.title);
-                                                        if (isFav) {
-                                                            const newFavs = favorites.filter(f => (f.isbn !== book.isbn && f.title !== book.title));
-                                                            setFavorites(newFavs);
-                                                            localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                        } else {
-                                                            const newFavs = [...favorites, book];
-                                                            setFavorites(newFavs);
-                                                            localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                        }
-                                                    }}
-                                                    className={`p-3 rounded-2xl transition-all ${favorites.find(f => f.isbn === book.isbn || f.title === book.title)
-                                                        ? 'bg-red-50 text-red-500'
-                                                        : 'bg-gray-50 text-gray-300 hover:text-red-500'
-                                                        }`}
-                                                >
-                                                    <Heart size={20} className={favorites.find(f => f.isbn === book.isbn || f.title === book.title) ? 'fill-red-500' : ''} />
-                                                </button>
+                                                </div>
+
+                                                <div className="hidden md:flex items-center pr-4">
+                                                    <span className="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                                                </div>
                                             </motion.div>
                                         ))}
                                     </div>
@@ -1036,13 +1066,21 @@ const App: React.FC = () => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="flex flex-col items-center justify-center min-h-[50vh] text-center"
+                                className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-8"
                             >
-                                <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 rounded-full animate-spin mb-6"></div>
-                                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 uppercase tracking-widest">
-                                    {isGenerating ? 'Gerando Conteúdo' : 'Sincronizando'}
-                                </h2>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Preparando camada de conhecimento...</p>
+                                <div className="relative size-24">
+                                    <div className="absolute inset-0 border-4 border-slate-100 dark:border-surface-input rounded-full" />
+                                    <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(19,127,236,0.2)]" />
+                                    <div className="absolute inset-5 bg-primary/10 rounded-full flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-primary text-[24px] animate-pulse">ink_pen</span>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                        {isGenerating ? 'Gerando Camada de Estudo' : 'Sincronizando Conhecimento'}
+                                    </h2>
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] animate-fade-in italic">IA está processando metadados e estruturando o deck...</p>
+                                </div>
                             </motion.div>
                         )}
 
@@ -1052,273 +1090,282 @@ const App: React.FC = () => {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="max-w-5xl mx-auto animate-fade-in mt-8 md:mt-12"
+                                className="max-w-7xl mx-auto flex flex-col gap-8 pb-12"
                             >
-                                <div className="flex flex-col bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                                    <div className="px-6 md:px-8 pt-6 md:pt-8 pb-6 w-full">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-700 pb-6">
-                                            <div className="flex items-center gap-4">
+                                {/* HEADER SECTION */}
+                                <div className="flex flex-col gap-6 bg-white dark:bg-surface-dark p-8 md:p-10 rounded-[40px] border border-slate-100 dark:border-surface-input/30 shadow-sm relative overflow-hidden">
+                                    {/* Background Decor */}
+                                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-50" />
+
+                                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+                                        <div className="flex-1 flex flex-col gap-4">
+                                            <div className="flex items-center gap-3">
                                                 {prevState === AppState.SEARCH_RESULTS && (
                                                     <button
-                                                        onClick={() => {
-                                                            setState(AppState.SEARCH_RESULTS);
-                                                            setPrevState(null);
-                                                        }}
-                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 rounded-xl transition-all border border-gray-100 dark:border-gray-700 mr-2"
-                                                        title="Voltar para resultados"
+                                                        onClick={() => { setState(AppState.SEARCH_RESULTS); setPrevState(null); }}
+                                                        className="size-10 flex items-center justify-center rounded-2xl bg-slate-100 dark:bg-surface-input text-slate-500 hover:text-primary transition-all border border-slate-200 dark:border-transparent"
                                                     >
-                                                        <ChevronRight size={20} className="rotate-180" />
+                                                        <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                                                     </button>
                                                 )}
-                                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
-                                                    {data.title}
-                                                </h1>
-                                                <button
-                                                    onClick={toggleFavorite}
-                                                    className={`p-2 rounded-full border transition-all ${favorites.find(f => f.isbn === data.isbn)
-                                                        ? 'bg-red-50 border-red-200 text-red-500'
-                                                        : 'bg-gray-50 border-gray-100 text-gray-400 hover:text-red-500'}`}
-                                                >
-                                                    <Heart size={20} className={favorites.find(f => f.isbn === data.isbn) ? 'fill-red-500' : ''} />
-                                                </button>
+                                                <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-lg border border-primary/20">Livro Selecionado</span>
                                             </div>
-                                            <div className="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                                                <button
-                                                    onClick={() => { setIsSummaryExpanded(false); setIsReadMore(false); }}
-                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!isSummaryExpanded
-                                                        ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
-                                                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
-                                                >
-                                                    Sinopse
-                                                </button>
-                                                <button
-                                                    onClick={() => { data.aiSummary ? setIsSummaryExpanded(true) : handleDeepAnalysis(); setIsReadMore(false); }}
-                                                    disabled={isAnalyzingDeeply}
-                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${isSummaryExpanded
-                                                        ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
-                                                        : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
-                                                >
-                                                    {isAnalyzingDeeply ? 'Analisando...' : 'Análise Crítica'}
-                                                    {!data.aiSummary && !isAnalyzingDeeply && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
-                                                </button>
+
+                                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tight uppercase">
+                                                {data.title}
+                                            </h1>
+
+                                            <div className="flex items-center gap-4 text-slate-500 dark:text-text-secondary font-bold italic">
+                                                <span className="flex items-center gap-1.5 line-clamp-1">
+                                                    <User size={16} className="text-primary/60" />
+                                                    {data.author}
+                                                </span>
+                                                <span className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />
+                                                <span className="flex items-center gap-1.5 shrink-0">
+                                                    <Calendar size={16} className="text-primary/60" />
+                                                    {data.publishDate}
+                                                </span>
                                             </div>
                                         </div>
 
-                                        {/* Amazon-Style Horizontal Metadata Bar - Refined per User Feedback */}
-                                        {/* Bento Grid Metadata Header */}
-                                        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 px-6 md:px-8 pb-2">
-                                            {[
-                                                { label: 'Autor', value: data.author, icon: User, colSpan: 'col-span-2' },
-                                                { label: 'Ano', value: data.publishDate, icon: Calendar },
-                                                { label: 'Páginas', value: data.pages, icon: BookOpen },
-                                                { label: 'Idioma', value: data.language, icon: Languages },
-                                                { label: 'Gênero', value: data.genre, icon: Tag },
-                                                { label: 'Editora', value: data.publisher, icon: Building2 },
-                                                { label: 'ISBN', value: data.isbn, icon: Hash }
-                                            ].map((item, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className={`flex flex-col p-4 bg-gray-50/50 dark:bg-gray-800/40 rounded-2xl border border-gray-100 dark:border-gray-700/50 hover:border-blue-200 dark:hover:border-blue-800 transition-all group/meta ${item.colSpan || ''}`}
-                                                >
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500">
-                                                            {item.label}
-                                                        </span>
-                                                        <item.icon size={14} className="text-blue-500/50 group-hover/meta:text-blue-500 transition-colors" />
-                                                    </div>
-                                                    <span className={`text-sm font-bold truncate leading-tight ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
-                                                        {item.value || 'N/A'}
-                                                    </span>
+                                        <div className="flex flex-col items-center md:items-end gap-4 min-w-[200px]">
+                                            <button
+                                                onClick={toggleFavorite}
+                                                className={`size-14 rounded-2xl flex items-center justify-center transition-all ${favorites.find(f => f.isbn === data.isbn)
+                                                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                                                    : 'bg-slate-100 dark:bg-surface-input text-slate-400 hover:text-red-500 border border-slate-200 dark:border-transparent'}`}
+                                            >
+                                                <Heart size={28} className={favorites.find(f => f.isbn === data.isbn) ? 'fill-white' : ''} />
+                                            </button>
+
+                                            {/* Mock Progress Bar */}
+                                            <div className="w-full bg-slate-100 dark:bg-surface-input h-3 rounded-full overflow-hidden border border-slate-200 dark:border-transparent group cursor-help relative" title="Progresso de Estudo">
+                                                <div className="h-full bg-primary w-[35%] rounded-full shadow-[0_0_12px_rgba(19,127,236,0.4)]" />
+                                                <span className="absolute -top-6 right-0 text-[10px] font-black text-primary opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest italic">35% ESTUDADO</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* MAIN CONTENT GRID */}
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                                    {/* Sidebar Column (4/12) */}
+                                    <div className="lg:col-span-4 flex flex-col gap-6 sticky top-28">
+                                        {/* Premium Cover Card */}
+                                        <div className="relative group/cover aspect-[2/3] w-full max-w-[320px] mx-auto lg:mx-0 rounded-[40px] overflow-hidden bg-slate-200 dark:bg-surface-input shadow-2xl border-4 border-white dark:border-surface-highlight">
+                                            {data.coverUrl && !data.coverUrl.includes('placehold.co') ? (
+                                                <img
+                                                    src={data.coverUrl}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                    alt={data.title}
+                                                    referrerPolicy="no-referrer"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center p-10 text-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-surface-input dark:to-surface-dark">
+                                                    <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-[80px] mb-4 italic">book</span>
+                                                    <span className="text-sm font-black uppercase text-slate-400 leading-tight italic">{data.title}</span>
                                                 </div>
-                                            ))}
+                                            )}
+
+                                            <div className="absolute inset-x-0 bottom-6 flex justify-center gap-3 opacity-0 group-hover/cover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover/cover:translate-y-0">
+                                                <button
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="size-12 bg-white/95 backdrop-blur-md text-primary rounded-2xl shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                                                    title="Upload Capa"
+                                                >
+                                                    <Pencil size={20} />
+                                                </button>
+                                                <button
+                                                    onClick={handleForceCoverFetch}
+                                                    className="size-12 bg-white/95 backdrop-blur-md text-primary rounded-2xl shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                                                    title="IA Cover Fetch"
+                                                >
+                                                    <RefreshCcw size={20} className={isGenerating ? 'animate-spin' : ''} />
+                                                </button>
+                                            </div>
+                                            <input type="file" ref={fileInputRef} onChange={handleCoverUpload} accept="image/*" className="hidden" />
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex flex-col gap-3">
+                                            <button
+                                                onClick={() => handleNavClick(AppState.FLASHCARDS)}
+                                                className="w-full py-5 bg-primary hover:bg-primary/90 text-white rounded-[24px] font-black uppercase tracking-[0.15em] text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-3 group transition-all active:scale-95"
+                                            >
+                                                <span className="material-symbols-outlined text-[20px] group-hover:rotate-12 transition-transform">quiz</span>
+                                                Praticar Flashcards
+                                            </button>
+                                            <button
+                                                onClick={() => handleNavClick(AppState.QUIZ)}
+                                                className="w-full py-5 bg-white dark:bg-surface-dark text-slate-700 dark:text-white border border-slate-200 dark:border-surface-input/50 rounded-[24px] font-black uppercase tracking-[0.15em] text-xs hover:border-primary/50 transition-all flex items-center justify-center gap-3 group active:scale-95"
+                                            >
+                                                <span className="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform">emoji_events</span>
+                                                Iniciar Quiz
+                                            </button>
+                                        </div>
+
+                                        {/* Editions Sidebar View Integration */}
+                                        <div className="bg-slate-50 dark:bg-surface-input/20 p-6 rounded-[32px] border border-slate-100 dark:border-surface-input/30">
+                                            {sidebarView === 'editions' ? (
+                                                <div className="flex flex-col gap-4 animate-fade-in">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Outras Edições</span>
+                                                        <button onClick={() => setSidebarView('info')} className="size-8 flex items-center justify-center rounded-lg bg-slate-200 dark:bg-surface-input text-slate-500 hover:text-primary transition-all">
+                                                            <span className="material-symbols-outlined text-[18px]">close</span>
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex flex-col gap-3 min-h-[200px]">
+                                                        {isFetchingEditions ? (
+                                                            <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>
+                                                        ) : editions.length > 0 ? (
+                                                            editions.slice(editionsPage * 3, (editionsPage + 1) * 3).map((ed) => (
+                                                                <button key={ed.isbn} onClick={() => { handleSelectEdition(ed); setEditionsPage(0); }} className="flex gap-4 p-3 rounded-2xl bg-white dark:bg-surface-dark border border-slate-100 dark:border-transparent hover:border-primary/40 transition-all group text-left shadow-sm">
+                                                                    <div className="w-12 h-16 rounded-xl bg-slate-100 dark:bg-surface-input shrink-0 overflow-hidden shadow-sm">
+                                                                        <img src={ed.coverUrl || ''} className="w-full h-full object-cover" alt={ed.title} />
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                                        <h4 className="text-xs font-black truncate text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-primary transition-colors">{ed.title}</h4>
+                                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter mt-1 italic">{ed.year || 'N/A'} • {ed.publisher}</p>
+                                                                    </div>
+                                                                </button>
+                                                            ))
+                                                        ) : <p className="text-[11px] text-slate-400 italic text-center py-4">Nenhuma outra edição encontrada.</p>}
+                                                        {editions.length > 3 && (
+                                                            <div className="flex items-center justify-between pt-2">
+                                                                <button disabled={editionsPage === 0} onClick={() => setEditionsPage(p => p - 1)} className="text-[10px] font-black text-primary disabled:opacity-30 uppercase tracking-widest">Ant</button>
+                                                                <span className="text-[10px] font-black text-slate-400">{editionsPage + 1}/{Math.ceil(editions.length / 3)}</span>
+                                                                <button disabled={(editionsPage + 1) * 3 >= editions.length} onClick={() => setEditionsPage(p => p + 1)} className="text-[10px] font-black text-primary disabled:opacity-30 uppercase tracking-widest">Próx</button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={handleFetchEditions}
+                                                    className="w-full py-4 text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center justify-center gap-2 hover:bg-primary/5 transition-all rounded-2xl animate-fade-in"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">collections_bookmark</span>
+                                                    Explorar outras edições
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col lg:flex-row gap-8 items-start px-6 md:px-8 pb-6 md:pb-8 pt-6 w-full">
-                                        {/* Cover Column */}
-                                        <div className="w-full lg:w-48 flex-shrink-0 flex flex-col items-center">
-                                            <div className="relative group/cover w-48 h-72">
-                                                <div className="w-full h-full rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 transform hover:scale-[1.02] transition-transform duration-300">
-                                                    {data.coverUrl && !data.coverUrl.includes('placehold.co') ? (
-                                                        <img
-                                                            src={data.coverUrl}
-                                                            alt={data.title}
-                                                            className="w-full h-full object-cover"
-                                                            referrerPolicy="no-referrer"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = `https://placehold.co/400x600/1a202c/ffffff?text=${encodeURIComponent(data.title!)}`;
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center p-6 text-center text-[10px] text-gray-300 dark:text-gray-700 font-bold uppercase tracking-tighter leading-tight bg-gray-50 dark:bg-gray-900 shadow-inner italic">
-                                                            {data.title}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Cover Control Overlay */}
-                                                <div className="absolute inset-x-0 bottom-4 flex justify-center gap-3 opacity-0 group-hover/cover:opacity-100 transition-all">
+                                    {/* Content Column (8/12) */}
+                                    <div className="lg:col-span-8 flex flex-col gap-6">
+                                        {/* Premium Tab System */}
+                                        <div className="flex flex-col bg-white dark:bg-surface-dark rounded-[40px] border border-slate-100 dark:border-surface-input/30 shadow-sm overflow-hidden min-h-[600px]">
+                                            <div className="flex items-center gap-1 p-2 bg-slate-50 dark:bg-surface-input/20 border-b border-slate-100 dark:border-surface-input/30">
+                                                {[
+                                                    { id: 'synopsis', label: 'Sinopse', icon: 'menu_book' },
+                                                    { id: 'analysis', label: 'Análise IA', icon: 'auto_awesome' },
+                                                    { id: 'notes', label: 'Meus Insights', icon: 'edit_note' },
+                                                    { id: 'details', label: 'Ficha Técnica', icon: 'info' }
+                                                ].map(tab => (
                                                     <button
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        className="p-2.5 bg-white dark:bg-gray-800 text-blue-600 rounded-full shadow-xl border border-gray-100 dark:border-gray-700 transform hover:scale-110 transition-all"
-                                                        title="Subir Capa manualmente"
-                                                    >
-                                                        <Pencil size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={handleForceCoverFetch}
-                                                        disabled={isGenerating}
-                                                        className="p-2.5 bg-white dark:bg-gray-800 text-blue-600 rounded-full shadow-xl border border-gray-100 dark:border-gray-700 transform hover:scale-110 transition-all disabled:opacity-50"
-                                                        title="Tentar carregar capa via IA"
-                                                    >
-                                                        <RefreshCcw size={16} className={isGenerating ? 'animate-spin' : ''} />
-                                                    </button>
-                                                </div>
-
-                                                <input
-                                                    type="file"
-                                                    ref={fileInputRef}
-                                                    onChange={handleCoverUpload}
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                />
-                                            </div>
-
-                                            <div className="space-y-4 w-full mt-6">
-                                                {sidebarView === 'editions' && (
-                                                    <div className="flex flex-col gap-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Edições PT-BR</span>
-                                                            <button onClick={() => setSidebarView('info')} className="text-[9px] font-black text-blue-600 uppercase tracking-widest hover:underline">Voltar</button>
-                                                        </div>
-
-                                                        <div className="space-y-3 pr-2 min-h-[300px]">
-                                                            {isFetchingEditions ? (
-                                                                <div className="flex justify-center py-4">
-                                                                    <div className="w-4 h-4 border-2 border-gray-200 dark:border-gray-700 border-t-blue-600 rounded-full animate-spin"></div>
-                                                                </div>
-                                                            ) : editions.length > 0 ? (
-                                                                <>
-                                                                    {editions.slice(editionsPage * 4, (editionsPage + 1) * 4).map((ed) => (
-                                                                        <button
-                                                                            key={ed.isbn}
-                                                                            onClick={() => {
-                                                                                handleSelectEdition(ed);
-                                                                                setEditionsPage(0);
-                                                                            }}
-                                                                            className="w-full flex gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 hover:border-blue-400 transition-all text-left group"
-                                                                        >
-                                                                            <div className="w-8 h-12 rounded bg-gray-200 dark:bg-gray-700 flex-shrink-0 overflow-hidden shadow-sm">
-                                                                                <img
-                                                                                    src={ed.coverUrl || ''}
-                                                                                    className="w-full h-full object-cover"
-                                                                                    referrerPolicy="no-referrer"
-                                                                                />
-                                                                            </div>
-                                                                            <div className="flex-grow min-w-0">
-                                                                                <h4 className="text-[10px] font-bold truncate text-gray-900 dark:text-white group-hover:text-blue-600">{ed.title}</h4>
-                                                                                <p className="text-[8px] text-gray-400 uppercase font-black truncate">{ed.year || 'N/A'} • {ed.publisher}</p>
-                                                                            </div>
-                                                                        </button>
-                                                                    ))}
-
-                                                                    {editions.length > 4 && (
-                                                                        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-                                                                            <button
-                                                                                disabled={editionsPage === 0}
-                                                                                onClick={() => setEditionsPage(p => p - 1)}
-                                                                                className="text-[9px] font-bold uppercase tracking-widest text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                                            >
-                                                                                Anterior
-                                                                            </button>
-                                                                            <span className="text-[9px] font-black text-gray-400 uppercase opacity-50">
-                                                                                {editionsPage + 1} / {Math.ceil(editions.length / 4)}
-                                                                            </span>
-                                                                            <button
-                                                                                disabled={(editionsPage + 1) * 4 >= editions.length}
-                                                                                onClick={() => setEditionsPage(p => p + 1)}
-                                                                                className="text-[9px] font-bold uppercase tracking-widest text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                                            >
-                                                                                Próximo
-                                                                            </button>
-                                                                        </div>
-                                                                    )}
-                                                                </>
-                                                            ) : (
-                                                                <p className="text-[10px] text-gray-400 italic text-center py-4">Nenhuma outra edição.</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {sidebarView === 'info' && (
-                                                    <button
-                                                        onClick={handleFetchEditions}
-                                                        className="w-full mt-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-xl transition-all flex items-center justify-center gap-2 border border-blue-100 dark:border-blue-900/30"
-                                                    >
-                                                        <Search size={14} />
-                                                        Outras edições
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-grow text-left flex flex-col h-full self-stretch">
-                                            <div className={`relative bg-white dark:bg-gray-800/40 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-500 overflow-hidden ${isReadMore ? 'h-auto' : 'h-60'} ${state === AppState.SUMMARY ? 'ring-1 ring-blue-50 shadow-blue-900/5' : ''}`}>
-                                                <div className="p-5 md:p-6" ref={synopsisRef}>
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-sans space-y-4">
-                                                        {(() => {
-                                                            const text = (isSummaryExpanded ? data.aiSummary : data.synopsis || "").replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
-                                                            let paras = text.split('\n\n').filter(p => p.trim());
-                                                            if (paras.length === 1) paras = text.split('\n').filter(p => p.trim());
-                                                            if (paras.length === 1 && text.length > 200) {
-                                                                paras = text.split(/(?<=\.)(?=\s+[A-Z])/).filter(p => p.trim());
-                                                                if (paras.length > 4) {
-                                                                    const groups = [];
-                                                                    for (let i = 0; i < paras.length; i += 2) groups.push(paras.slice(i, i + 2).join(' '));
-                                                                    paras = groups;
-                                                                }
+                                                        key={tab.id}
+                                                        onClick={() => {
+                                                            if (tab.id === 'analysis') {
+                                                                if (data.aiSummary) setSummaryTab('analysis');
+                                                                else { handleDeepAnalysis(); setSummaryTab('analysis'); }
+                                                            } else {
+                                                                setSummaryTab(tab.id as any);
                                                             }
-                                                            return paras.map((para, i) => <p key={i}>{para}</p>);
-                                                        })()}
-                                                    </div>
-                                                </div>
-
-                                                {/* Read More Gradient Overlay - Only show if hasOverflow */}
-                                                {!isReadMore && hasOverflow && (
-                                                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-gray-900 via-white/90 dark:via-gray-900/90 to-transparent flex items-end justify-center pb-4">
-                                                        <button
-                                                            onClick={() => setIsReadMore(true)}
-                                                            className="flex items-center gap-2 px-5 py-2 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border border-blue-50 dark:border-blue-900/30 hover:bg-blue-50 dark:hover:bg-gray-700 transform hover:scale-105 transition-all group"
-                                                        >
-                                                            <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
-                                                            Leia mais
-                                                        </button>
-                                                    </div>
-                                                )}
-
-                                                {isReadMore && (
-                                                    <div className="flex justify-center pb-6 pt-2">
-                                                        <button
-                                                            onClick={() => setIsReadMore(false)}
-                                                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors group"
-                                                        >
-                                                            <ChevronUp size={14} className="group-hover:-translate-y-0.5 transition-transform" />
-                                                            Recolher
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                        }}
+                                                        disabled={tab.id === 'analysis' && isAnalyzingDeeply}
+                                                        className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[24px] text-[11px] font-black uppercase tracking-widest transition-all ${summaryTab === tab.id
+                                                            ? 'bg-white dark:bg-surface-dark shadow-md text-primary ring-1 ring-slate-100 dark:ring-white/5'
+                                                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-text-secondary'}`}
+                                                    >
+                                                        <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
+                                                        <span className="hidden sm:inline">{tab.label}</span>
+                                                        {tab.id === 'analysis' && isAnalyzingDeeply && <div className="size-3 border-2 border-primary/20 border-t-primary rounded-full animate-spin ml-1" />}
+                                                    </button>
+                                                ))}
                                             </div>
 
-                                            <div className="mt-8 grid grid-cols-2 gap-4">
-                                                <button onClick={() => handleNavClick(AppState.FLASHCARDS)} className="p-4 bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl transition-all text-left">
-                                                    <h4 className="text-gray-900 dark:text-white font-bold text-xs uppercase mb-1">Flashcards</h4>
-                                                    <p className="text-gray-500 dark:text-gray-400 text-[12px]">Treinar memória.</p>
-                                                </button>
-                                                <button onClick={() => handleNavClick(AppState.QUIZ)} className="p-4 bg-gray-50 dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-700 rounded-xl transition-all text-left">
-                                                    <h4 className="text-gray-900 dark:text-white font-bold text-xs uppercase mb-1">Quiz de Estudo</h4>
-                                                    <p className="text-gray-500 dark:text-gray-400 text-[12px]">Testar compreensão.</p>
-                                                </button>
+                                            <div className="p-8 md:p-10 flex-1 relative">
+                                                <AnimatePresence mode="wait">
+                                                    {summaryTab === 'synopsis' && (
+                                                        <motion.div key="synopsis" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
+                                                            <div className="flex items-center gap-3 mb-4">
+                                                                <div className="h-8 w-1 bg-primary rounded-full" />
+                                                                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Visão Geral da Obra</h3>
+                                                            </div>
+                                                            <div className="text-base text-slate-600 dark:text-text-secondary leading-relaxed font-medium space-y-6 italic">
+                                                                {(() => {
+                                                                    const text = (data.synopsis || "Sinopse não disponível.").replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
+                                                                    let paras = text.split('\n\n').filter(p => p.trim());
+                                                                    if (paras.length === 1) paras = text.split('\n').filter(p => p.trim());
+                                                                    return paras.map((para, i) => <p key={i}>{para}</p>);
+                                                                })()}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+
+                                                    {summaryTab === 'analysis' && (
+                                                        <motion.div key="analysis" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-6">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="h-8 w-1 bg-primary rounded-full" />
+                                                                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Análise Crítica IA</h3>
+                                                                </div>
+                                                                {isAnalyzingDeeply && <span className="text-[10px] font-black text-primary animate-pulse tracking-widest">PROCESSANDO CAMADAS...</span>}
+                                                            </div>
+                                                            <div className="text-base text-slate-600 dark:text-text-secondary leading-relaxed font-medium space-y-6 italic">
+                                                                {data.aiSummary ? (() => {
+                                                                    const text = data.aiSummary.replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
+                                                                    let paras = text.split('\n\n').filter(p => p.trim());
+                                                                    return paras.map((para, i) => <p key={i}>{para}</p>);
+                                                                })() : (
+                                                                    <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                                                        <div className="size-20 bg-primary/5 rounded-full flex items-center justify-center">
+                                                                            <span className="material-symbols-outlined text-primary text-[40px] animate-pulse">auto_awesome</span>
+                                                                        </div>
+                                                                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest text-center">Nenhuma análise gerada ainda.<br /><span className="text-[10px] font-bold text-primary cursor-pointer hover:underline" onClick={handleDeepAnalysis}>GERAR AGORA</span></p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+
+                                                    {summaryTab === 'notes' && (
+                                                        <motion.div key="notes" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="flex flex-col items-center justify-center py-20 opacity-40">
+                                                            <span className="material-symbols-outlined text-[80px] mb-4">draw</span>
+                                                            <h3 className="text-lg font-black uppercase tracking-widest">Meus Insights</h3>
+                                                            <p className="text-xs font-bold mt-2">Funcionalidade em desenvolvimento na V12.0</p>
+                                                        </motion.div>
+                                                    )}
+
+                                                    {summaryTab === 'details' && (
+                                                        <motion.div key="details" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-8">
+                                                            <div className="flex items-center gap-3 mb-6">
+                                                                <div className="h-8 w-1 bg-primary rounded-full" />
+                                                                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Ficha Técnica</h3>
+                                                            </div>
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                                                {[
+                                                                    { label: 'Autor', value: data.author, icon: User },
+                                                                    { label: 'Publicação', value: data.publishDate, icon: Calendar },
+                                                                    { label: 'Volume', value: data.pages ? `${data.pages} páginas` : 'Desconhecido', icon: BookOpen },
+                                                                    { label: 'Idioma Original', value: data.language, icon: Languages },
+                                                                    { label: 'Gênero/Tag', value: data.genre, icon: Tag },
+                                                                    { label: 'Selo Editorial', value: data.publisher, icon: Building2 },
+                                                                    { label: 'Identificador ISBN', value: data.isbn, icon: Hash }
+                                                                ].map((item, idx) => (
+                                                                    <div key={idx} className="flex flex-col gap-2 p-5 bg-slate-50 dark:bg-surface-input/30 rounded-[28px] border border-slate-100 dark:border-transparent">
+                                                                        <div className="flex items-center justify-between mb-1">
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</span>
+                                                                            <item.icon size={16} className="text-primary/40" />
+                                                                        </div>
+                                                                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{item.value || 'INDISPONÍVEL'}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         </div>
                                     </div>
@@ -1329,17 +1376,22 @@ const App: React.FC = () => {
                         {state === AppState.FLASHCARDS && data && data.flashcards && !isGenerating && (
                             <motion.div
                                 key="flashcards"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                className="max-w-6xl mx-auto"
+                                className="max-w-6xl mx-auto pb-20"
                             >
-                                <div className="flex items-center gap-4 mb-10">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">Deck Gerado</h3>
-                                    <div className="h-px bg-gray-200 dark:bg-gray-800 flex-grow"></div>
-                                    <span className="text-blue-600 dark:text-blue-400 text-xs font-bold">8 Cards</span>
+                                <div className="flex items-center gap-6 mb-12 bg-white dark:bg-surface-dark p-6 rounded-[32px] border border-slate-100 dark:border-surface-input/30 shadow-sm">
+                                    <div className="size-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-primary text-[24px]">collections_bookmark</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Deck de Memorização</h3>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">IA processou {data.flashcards.length} cards exclusivos</p>
+                                    </div>
+                                    <button onClick={reset} className="px-6 py-3 bg-slate-100 dark:bg-surface-input text-slate-500 hover:text-primary rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Voltar</button>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                                     {data.flashcards.map((card) => (
                                         <FlashcardItem key={card.id} card={card} />
                                     ))}
@@ -1359,32 +1411,50 @@ const App: React.FC = () => {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="max-w-md mx-auto text-center bg-white dark:bg-gray-800 p-12 rounded-3xl shadow-lg border border-gray-200 dark:border-gray-700"
+                                className="max-w-xl mx-auto text-center bg-white dark:bg-surface-dark p-12 md:p-16 rounded-[48px] shadow-2xl border border-slate-100 dark:border-surface-input/30 relative overflow-hidden"
                             >
-                                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-8 text-2xl">🏆</div>
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Treino Concluído!</h2>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Sua pontuação final no quiz:</p>
+                                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
 
-                                <div className="text-6xl font-bold text-blue-600 dark:text-blue-400 mb-10">
-                                    {quizScore}<span className="text-xl text-gray-300 dark:text-gray-600 ml-2">/ 10</span>
+                                <div className="size-24 bg-primary/10 text-primary rounded-[32px] flex items-center justify-center mx-auto mb-10 text-4xl shadow-inner animate-bounce">
+                                    <span className="material-symbols-outlined text-[48px]">emoji_events</span>
+                                </div>
+
+                                <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-3 uppercase tracking-tight">Desafio Concluído!</h2>
+                                <p className="text-slate-500 dark:text-text-secondary font-bold uppercase tracking-[0.2em] text-[10px] mb-12 italic">Performance otimizada pela camada de IA</p>
+
+                                <div className="flex flex-col items-center gap-2 mb-12">
+                                    <div className="text-8xl font-black text-primary leading-none tracking-tighter">
+                                        {quizScore}<span className="text-2xl text-slate-200 dark:text-surface-input ml-2">/ 10</span>
+                                    </div>
+                                    <span className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Pontuação Final</span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 mb-10">
+                                    <div className="p-5 bg-slate-50 dark:bg-surface-input/30 rounded-3xl border border-slate-100 dark:border-transparent text-left">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Métricas</span>
+                                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase">Excelente!</span>
+                                    </div>
+                                    <div className="p-5 bg-slate-50 dark:bg-surface-input/30 rounded-3xl border border-slate-100 dark:border-transparent text-left">
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status</span>
+                                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase">Sincronizado</span>
+                                    </div>
                                 </div>
 
                                 <button
                                     onClick={reset}
-                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm shadow-md transition-all"
+                                    className="w-full py-5 bg-primary hover:bg-primary/90 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
                                 >
-                                    Nova Pesquisa
+                                    <span className="material-symbols-outlined text-[20px]">restart_alt</span>
+                                    Novo Estudo
                                 </button>
                             </motion.div>
                         )}
                     </AnimatePresence>
-
-
-                </main>
-
-                {/* View Transition Area padding */}
-                <div className="h-20 shrink-0 lg:hidden" />
+                </div>
             </main>
+
+            {/* View Transition Area padding */}
+            <div className="h-20 shrink-0 lg:hidden" />
         </div>
     );
 };
