@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookStudyData, AppState, Flashcard, QuizQuestion } from './types';
+import { BookStudyData, AppState, Flashcard, QuizQuestion, Note } from './types';
 import { fetchBookInfo, fetchFlashcards, fetchQuiz, fetchDeepAnalysis, fetchOtherEditions, searchBooks, forceFetchCover } from './services/apiService';
 import { FlashcardItem } from './components/FlashcardItem';
 import { Quiz } from './components/Quiz';
@@ -46,6 +46,9 @@ const App: React.FC = () => {
     const [headerSearchInput, setHeaderSearchInput] = useState('');
     const synopsisRef = React.useRef<HTMLDivElement>(null);
     const [hasOverflow, setHasOverflow] = useState(false);
+    const [shelfNotes, setShelfNotes] = useState<Note[]>([]);
+    const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+    const [noteFilter, setNoteFilter] = useState<'All' | 'Note' | 'Flashcard' | 'Character' | 'Quote'>('All');
 
     // Supabase States
     const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -82,6 +85,27 @@ const App: React.FC = () => {
 
         const savedFavorites = localStorage.getItem('myink_favorites');
         if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
+
+        const savedNotes = localStorage.getItem('myink_shelf_notes');
+        if (savedNotes) setShelfNotes(JSON.parse(savedNotes));
+        else {
+            // Mock initial notes for demonstration
+            const mockNotes: Note[] = [
+                {
+                    id: '1',
+                    bookId: 'gatsby',
+                    title: 'A luz verde e seu significado',
+                    type: 'Note',
+                    category: 'Análise',
+                    page: 152,
+                    content: 'A luz verde no final do cais de Daisy representa o sonho inatingível de Gatsby e a esperança no futuro...',
+                    tags: ['Simbolismo', 'Gatsby'],
+                    updatedAt: new Date().toISOString()
+                }
+            ];
+            setShelfNotes(mockNotes);
+            localStorage.setItem('myink_shelf_notes', JSON.stringify(mockNotes));
+        }
 
         setIsDark(false);
         document.documentElement.classList.remove('dark');
@@ -595,6 +619,41 @@ const App: React.FC = () => {
         setState(AppState.RESULTS);
     };
 
+    const handleSelectNote = (note: Note) => {
+        setSelectedNote({ ...note });
+    };
+
+    const handleSaveNote = () => {
+        if (!selectedNote) return;
+        const updatedNotes = shelfNotes.some(n => n.id === selectedNote.id)
+            ? shelfNotes.map(n => n.id === selectedNote.id ? { ...selectedNote, updatedAt: new Date().toISOString() } : n)
+            : [...shelfNotes, { ...selectedNote, updatedAt: new Date().toISOString() }];
+
+        setShelfNotes(updatedNotes);
+        localStorage.setItem('myink_shelf_notes', JSON.stringify(updatedNotes));
+    };
+
+    const handleDeleteNote = (noteId: string) => {
+        const updatedNotes = shelfNotes.filter(n => n.id !== noteId);
+        setShelfNotes(updatedNotes);
+        localStorage.setItem('myink_shelf_notes', JSON.stringify(updatedNotes));
+        if (selectedNote?.id === noteId) setSelectedNote(null);
+    };
+
+    const handleNewNote = () => {
+        const newNote: Note = {
+            id: Date.now().toString(),
+            bookId: data?.isbn || 'unlinked',
+            title: 'Nova Nota',
+            type: 'Note',
+            category: 'Geral',
+            content: '',
+            tags: [],
+            updatedAt: new Date().toISOString()
+        };
+        setSelectedNote(newNote);
+    };
+
     const reset = () => {
         setState(AppState.IDLE);
         setBookInput('');
@@ -636,6 +695,13 @@ const App: React.FC = () => {
                         >
                             <span className={`material-symbols-outlined text-[20px] ${state === AppState.SEARCH_RESULTS ? 'filled' : ''}`}>explore</span>
                             <p className="text-sm font-semibold tracking-tight">Explorar</p>
+                        </button>
+                        <button
+                            onClick={() => setState(AppState.SHELF)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${state === AppState.SHELF ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white'}`}
+                        >
+                            <span className={`material-symbols-outlined text-[20px] ${state === AppState.SHELF ? 'filled' : ''}`}>library_books</span>
+                            <p className="text-sm font-semibold tracking-tight">Minha Estante</p>
                         </button>
                         <button
                             onClick={() => setShowFavoritesModal(true)}
@@ -1447,6 +1513,290 @@ const App: React.FC = () => {
                                     <span className="material-symbols-outlined text-[20px]">restart_alt</span>
                                     Novo Estudo
                                 </button>
+                            </motion.div>
+                        )}
+
+                        {state === AppState.SHELF && (
+                            <motion.div
+                                key="shelf"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="h-full flex flex-col lg:flex-row -m-6 bg-slate-50/50 dark:bg-background-dark relative"
+                            >
+                                {/* LIST COLUMN */}
+                                <div className="w-full lg:w-[400px] flex flex-col border-r border-slate-200 dark:border-surface-input/30 bg-white dark:bg-surface-dark h-full">
+                                    {/* Book Summary Card */}
+                                    <div className="p-6 border-b border-slate-200 dark:border-surface-input/20">
+                                        <div className="flex gap-4">
+                                            <div className="w-16 h-24 rounded-xl shadow-lg overflow-hidden shrink-0 relative group cursor-pointer border-2 border-white dark:border-surface-input/20">
+                                                <img
+                                                    alt="Book Cover"
+                                                    className="w-full h-full object-cover"
+                                                    src={data?.coverUrl || "https://images.unsplash.com/photo-1543005087-b452d3220622?q=80&w=1976&auto=format&fit=crop"}
+                                                />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                            </div>
+                                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                <h2 className="text-lg font-black text-slate-900 dark:text-white truncate uppercase tracking-tight">{data?.title || 'Selecione um Livro'}</h2>
+                                                <p className="text-xs font-bold text-slate-400 dark:text-text-secondary mb-3 truncate">{data?.author || 'Autor desconhecido'}</p>
+                                                <div className="w-full bg-slate-100 dark:bg-surface-input h-2 rounded-full overflow-hidden">
+                                                    <div className="bg-primary h-full w-[45%]" />
+                                                </div>
+                                                <p className="text-[10px] font-black text-primary mt-2 flex items-center gap-1 uppercase tracking-widest">
+                                                    <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                                                    45% Concluído
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Search and Filters */}
+                                    <div className="p-4 space-y-4">
+                                        <div className="relative group">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[20px] group-focus-within:text-primary transition-colors">filter_list</span>
+                                            <input
+                                                className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-surface-input border-none rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400 text-slate-900 dark:text-white font-sans"
+                                                placeholder="Buscar nas notas..."
+                                                type="text"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                                            {['All', 'Note', 'Flashcard', 'Character', 'Quote'].map((f) => (
+                                                <button
+                                                    key={f}
+                                                    onClick={() => setNoteFilter(f as any)}
+                                                    className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${noteFilter === f ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md' : 'bg-white dark:bg-surface-input/50 text-slate-500 dark:text-text-secondary hover:bg-slate-100 dark:hover:bg-surface-input border border-slate-100 dark:border-transparent'}`}
+                                                >
+                                                    {f === 'All' ? 'Todas' : f === 'Note' ? 'Resumos' : f === 'Character' ? 'Personagem' : f === 'Quote' ? 'Citações' : 'Flashcards'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Notes List */}
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                                        {shelfNotes.filter(n => noteFilter === 'All' || n.type === noteFilter).map((note) => (
+                                            <div
+                                                key={note.id}
+                                                onClick={() => handleSelectNote(note)}
+                                                className={`group p-5 rounded-3xl border transition-all cursor-pointer relative hover:shadow-lg ${selectedNote?.id === note.id ? 'bg-primary/5 border-primary/20 shadow-md' : 'bg-white dark:bg-surface-dark border-slate-100 dark:border-surface-input/20'}`}
+                                            >
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${note.type === 'Note' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40' : note.type === 'Flashcard' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/40'}`}>
+                                                        {note.type}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                        {new Date(note.updatedAt).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <h3 className="font-black text-slate-900 dark:text-white mb-2 truncate text-base uppercase tracking-tight">{note.title}</h3>
+                                                <p className="text-xs font-medium text-slate-500 dark:text-text-secondary line-clamp-2 leading-relaxed">
+                                                    {note.content}
+                                                </p>
+                                                {selectedNote?.id === note.id && (
+                                                    <div className="absolute top-1/2 -right-2 -translate-y-1/2 size-4 bg-primary rounded-full ring-4 ring-white dark:ring-surface-dark" />
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {shelfNotes.length === 0 && (
+                                            <div className="text-center py-20">
+                                                <span className="material-symbols-outlined text-[48px] text-slate-200 dark:text-surface-input mb-4">edit_note</span>
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhuma nota criada</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Footer Action */}
+                                    <div className="p-4 border-t border-slate-200 dark:border-surface-input/20">
+                                        <button
+                                            onClick={handleNewNote}
+                                            className="w-full py-4 bg-primary text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                            Nova Nota
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* EDITOR COLUMN */}
+                                <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-white dark:bg-background-dark">
+                                    {selectedNote ? (
+                                        <>
+                                            {/* Editor Header */}
+                                            <div className="h-20 border-b border-slate-200 dark:border-surface-input/30 px-8 flex items-center justify-between shrink-0 bg-white/80 dark:bg-surface-dark/80 backdrop-blur-md sticky top-0 z-10">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                                                        <span className="material-symbols-outlined filled">edit_note</span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Fluxo de Estudo</span>
+                                                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Editando Insight</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <button
+                                                        onClick={() => handleDeleteNote(selectedNote.id)}
+                                                        className="text-slate-400 hover:text-red-500 transition-all p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                        title="Excluir"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                                                    </button>
+                                                    <div className="h-8 w-px bg-slate-200 dark:bg-surface-input/40 mx-2" />
+                                                    <button
+                                                        onClick={() => setSelectedNote(null)}
+                                                        className="text-slate-500 dark:text-text-secondary hover:bg-slate-100 dark:hover:bg-surface-input/50 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                                    >
+                                                        Fechar
+                                                    </button>
+                                                    <button
+                                                        onClick={handleSaveNote}
+                                                        className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all flex items-center gap-3 hover:scale-105 active:scale-95"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">save</span>
+                                                        Salvar
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Editor Content */}
+                                            <div className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+                                                <div className="max-w-4xl mx-auto space-y-10">
+                                                    <div className="bg-white dark:bg-surface-dark p-10 rounded-[40px] border border-slate-100 dark:border-surface-input/20 shadow-sm space-y-10 relative overflow-hidden">
+                                                        <div className="absolute top-0 right-0 p-4">
+                                                            <div className="size-12 rounded-full border border-primary/20 bg-primary/5 flex items-center justify-center text-primary">
+                                                                <span className="material-symbols-outlined text-[24px]">ink_pen</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Título do Registro</label>
+                                                            <input
+                                                                className="w-full text-4xl font-black border-none p-0 focus:ring-0 text-slate-900 dark:text-white bg-transparent placeholder:text-slate-200 dark:placeholder:text-surface-input uppercase tracking-tighter"
+                                                                placeholder="Dê um nome ao seu insight..."
+                                                                type="text"
+                                                                value={selectedNote.title}
+                                                                onChange={(e) => setSelectedNote({ ...selectedNote, title: e.target.value })}
+                                                            />
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                                                            <div>
+                                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Tipo de Camada</label>
+                                                                <div className="relative group">
+                                                                    <select
+                                                                        className="w-full appearance-none bg-slate-50 dark:bg-surface-input/50 border-2 border-transparent focus:border-primary/20 text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest rounded-2xl block p-5 outline-none transition-all cursor-pointer"
+                                                                        value={selectedNote.type}
+                                                                        onChange={(e) => setSelectedNote({ ...selectedNote, type: e.target.value as any })}
+                                                                    >
+                                                                        <option value="Note">Resumo Livre</option>
+                                                                        <option value="Flashcard">Flashcard IA</option>
+                                                                        <option value="Character">Análise de Personagem</option>
+                                                                        <option value="Quote">Citação Direta</option>
+                                                                    </select>
+                                                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-primary">
+                                                                        <span className="material-symbols-outlined text-lg">expand_more</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Dimensão</label>
+                                                                <div className="relative">
+                                                                    <select
+                                                                        className="w-full appearance-none bg-slate-50 dark:bg-surface-input/50 border-2 border-transparent focus:border-primary/20 text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest rounded-2xl block p-5 outline-none transition-all cursor-pointer"
+                                                                        value={selectedNote.category}
+                                                                        onChange={(e) => setSelectedNote({ ...selectedNote, category: e.target.value })}
+                                                                    >
+                                                                        <option>Geral</option>
+                                                                        <option>Análise Técnica</option>
+                                                                        <option>Simbolismo</option>
+                                                                        <option>Vocabulário</option>
+                                                                        <option>Contexto Histórico</option>
+                                                                    </select>
+                                                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-primary">
+                                                                        <span className="material-symbols-outlined text-lg">expand_more</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Página de Referência</label>
+                                                                <div className="relative group">
+                                                                    <input
+                                                                        className="w-full bg-slate-50 dark:bg-surface-input/50 border-2 border-transparent focus:border-primary/20 text-slate-900 dark:text-white text-sm font-black rounded-2xl block p-5 outline-none transition-all"
+                                                                        placeholder="ex: 152"
+                                                                        type="number"
+                                                                        value={selectedNote.page || ''}
+                                                                        onChange={(e) => setSelectedNote({ ...selectedNote, page: parseInt(e.target.value) || 0 })}
+                                                                    />
+                                                                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-primary material-symbols-outlined text-[20px] opacity-20 group-focus-within:opacity-100 transition-opacity">tag</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-white dark:bg-surface-dark rounded-[48px] border border-slate-100 dark:border-surface-input/20 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+                                                        <div className="bg-slate-50 dark:bg-surface-input/30 border-b border-slate-100 dark:border-surface-input/20 px-6 py-4 flex items-center gap-3 flex-wrap">
+                                                            <button className="size-10 flex items-center justify-center hover:bg-white dark:hover:bg-surface-input rounded-xl text-slate-600 dark:text-text-secondary transition-all hover:text-primary hover:shadow-sm" title="Bold">
+                                                                <span className="material-symbols-outlined text-[20px]">format_bold</span>
+                                                            </button>
+                                                            <button className="size-10 flex items-center justify-center hover:bg-white dark:hover:bg-surface-input rounded-xl text-slate-600 dark:text-text-secondary transition-all hover:text-primary hover:shadow-sm" title="Italic">
+                                                                <span className="material-symbols-outlined text-[20px]">format_italic</span>
+                                                            </button>
+                                                            <div className="w-px h-6 bg-slate-200 dark:bg-surface-input/40 mx-2" />
+                                                            <button className="size-10 flex items-center justify-center hover:bg-white dark:hover:bg-surface-input rounded-xl text-slate-600 dark:text-text-secondary transition-all hover:text-primary hover:shadow-sm" title="List">
+                                                                <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span>
+                                                            </button>
+                                                            <button className="size-10 flex items-center justify-center hover:bg-white dark:hover:bg-surface-input rounded-xl text-slate-600 dark:text-text-secondary transition-all hover:text-primary hover:shadow-sm" title="Image">
+                                                                <span className="material-symbols-outlined text-[20px]">image</span>
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex-1 p-10">
+                                                            <textarea
+                                                                className="w-full h-full border-none focus:ring-0 bg-transparent text-slate-700 dark:text-text-secondary resize-none text-lg font-bold leading-relaxed placeholder:text-slate-200 dark:placeholder:text-surface-input/30 placeholder:tracking-tight"
+                                                                placeholder="Expanda seu raciocínio aqui. Use citações, reflexões e conexões..."
+                                                                value={selectedNote.content}
+                                                                onChange={(e) => setSelectedNote({ ...selectedNote, content: e.target.value })}
+                                                            />
+                                                        </div>
+                                                        <div className="px-10 py-6 border-t border-slate-50 dark:border-surface-input/20 bg-slate-50/30 dark:bg-surface-input/10 flex items-center gap-4 flex-wrap">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="material-symbols-outlined text-primary text-[20px]">local_offer</span>
+                                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Indexação:</span>
+                                                            </div>
+                                                            {selectedNote.tags.map(tag => (
+                                                                <span key={tag} className="bg-primary/10 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 group cursor-pointer hover:bg-primary hover:text-white transition-all">
+                                                                    {tag}
+                                                                    <button className="hover:scale-125 transition-transform"><span className="material-symbols-outlined text-[14px]">close</span></button>
+                                                                </span>
+                                                            ))}
+                                                            <button className="text-slate-400 hover:text-primary transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border-2 border-dashed border-slate-200 dark:border-surface-input/40 hover:border-primary">
+                                                                <span className="material-symbols-outlined text-[16px]">add</span> Adicionar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                                            <div className="size-32 bg-slate-50 dark:bg-surface-input/30 rounded-[48px] flex items-center justify-center mb-10 text-primary/40 group">
+                                                <span className="material-symbols-outlined text-[64px] animate-pulse">menu_book</span>
+                                            </div>
+                                            <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight">Abra um Registro</h3>
+                                            <p className="max-w-md text-slate-500 dark:text-text-secondary font-bold uppercase tracking-[0.1em] leading-relaxed text-xs">
+                                                Selecione uma nota na lista lateral para visualizar ou editar seu conteúdo. Transforme sua leitura em conhecimento pragmático.
+                                            </p>
+                                            <button
+                                                onClick={handleNewNote}
+                                                className="mt-12 px-10 py-5 bg-primary text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-3"
+                                            >
+                                                <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                                                Criar Primeiro Registro
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>

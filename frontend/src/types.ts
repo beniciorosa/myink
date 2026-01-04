@@ -43,6 +43,18 @@ export interface BookEdition {
   whyExplanation?: string;
 }
 
+export interface Note {
+  id: string;
+  bookId: string;
+  title: string;
+  type: 'Note' | 'Flashcard' | 'Character' | 'Quote';
+  category: string;
+  page?: number;
+  content: string;
+  tags: string[];
+  updatedAt: string;
+}
+
 export enum AppState {
   IDLE = 'IDLE',
   LOADING = 'LOADING',
@@ -50,5 +62,6 @@ export enum AppState {
   QUIZ = 'QUIZ',
   SUMMARY = 'SUMMARY',
   RESULTS = 'RESULTS',
-  SEARCH_RESULTS = 'SEARCH_RESULTS'
+  SEARCH_RESULTS = 'SEARCH_RESULTS',
+  SHELF = 'SHELF'
 }
