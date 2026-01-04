@@ -22,7 +22,11 @@ function sanitizeJson(str) {
   return str.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'fake-key');
+
+if (!process.env.GEMINI_API_KEY) debugLog("AVISO: GEMINI_API_KEY não encontrada!");
+if (!process.env.GOOGLE_BOOKS_API_KEY) debugLog("AVISO: GOOGLE_BOOKS_API_KEY não encontrada!");
+if (!process.env.OPENAI_API_KEY) debugLog("AVISO: OPENAI_API_KEY não encontrada!");
 
 const getOpenLibraryData = async (isbn) => {
   try {
@@ -93,12 +97,15 @@ const classifySearchQuery = async (query) => {
     { "type": "SEARCH" | "AUTHOR" | "PUBLISHER" | "DISCOVERY", "value": "termo limpo" }`;
 
     const result = await model.generateContent(prompt);
-    const intent = JSON.parse(sanitizeJson(result.response.text()));
+    const responseText = result.response.text();
+    if (!responseText) throw new Error("Resposta vazia da IA");
+
+    const intent = JSON.parse(sanitizeJson(responseText.replace(/```json/g, "").replace(/```/g, "").trim()));
     debugLog(`Classificação IA: ${JSON.stringify(intent)}`);
     return intent;
   } catch (err) {
-    debugLog(`Erro classifySearchQuery: ${err.message}`);
-    return { type: "SEARCH", value: query };
+    debugLog(`Erro classifySearchQuery (${query}): ${err.message}`);
+    return { type: "SEARCH", value: query || "" };
   }
 };
 
@@ -150,12 +157,12 @@ const searchBooks = async (query, filters = {}) => {
         }
       }
 
-      const searchTerms = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+      const searchTerms = (query || "").toLowerCase().split(/\s+/).filter(w => w.length > 2);
 
       let processed = rawItems.map(item => {
-        const info = item.volumeInfo;
+        const info = item.volumeInfo || {};
         const publisher = info.publisher || 'Desconhecida';
-        const title = info.title;
+        const title = info.title || 'Título Indisponível';
         const language = info.language || 'unk';
         const authors = info.authors || [];
         const author = authors[0] || 'Desconhecido';
@@ -170,9 +177,9 @@ const searchBooks = async (query, filters = {}) => {
         )?.replace("http://", "https://");
 
         // Scoring logic
-        const lowerTitle = title.toLowerCase();
-        const lowerPub = publisher.toLowerCase();
-        const lowerAuthor = author.toLowerCase();
+        const lowerTitle = (title || "").toLowerCase();
+        const lowerPub = (publisher || "").toLowerCase();
+        const lowerAuthor = (author || "").toLowerCase();
         let score = 0;
 
         // Base score for language (Very important)
@@ -182,26 +189,26 @@ const searchBooks = async (query, filters = {}) => {
         const titleMatch = searchTerms.length > 0 && searchTerms.every(term => lowerTitle.includes(term));
         if (titleMatch) score += 500;
 
-        // Author Boost (Clason, Orwell, etc in query or as metadata)
+        // Author Boost
         const authorMatch = searchTerms.some(term => lowerAuthor.includes(term));
         if (authorMatch) score += 700;
 
-        // Publisher Bonus (Recognized BR houses + Casa dos Livros)
+        // Publisher Bonus
         const isBrPublisher = BR_PUBLISHERS.some(bp => lowerPub.includes(bp.toLowerCase()));
         if (isBrPublisher) score += 800;
 
-        // COVER PENALTY - Massive to avoid broken covers at all costs
+        // COVER PENALTY
         if (!cover || cover.includes('placehold.co')) {
           score -= 1500;
         }
 
-        // Secondary Work Demotion (Resumo, Estudo, etc.)
+        // Secondary Work Demotion
         if (lowerTitle.includes('resumo') || lowerTitle.includes('estendido') || lowerTitle.includes('plano de ação') || lowerTitle.includes('workbook')) {
           score -= 600;
         }
 
         return {
-          id: item.id,
+          id: item.id || Math.random().toString(),
           title,
           author,
           coverUrl: cover,

@@ -61,7 +61,11 @@ app.post("/api/search", async (req, res) => {
         res.json(results);
     } catch (error) {
         console.error("ERRO NO ENDPOINT /api/search:", error);
-        res.status(500).json({ error: "Falha na busca inteligente." });
+        res.status(500).json({
+            error: "Falha na busca inteligente.",
+            details: error.message,
+            stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+        });
     }
 });
 

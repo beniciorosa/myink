@@ -107,12 +107,18 @@ const App: React.FC = () => {
 
         if (localFavs.length > 0) {
             for (const book of localFavs) {
-                await supabase.from('favorites').upsert({ user_id: userId, book_data: book });
+                // Check if already in cloud to avoid duplicates
+                const { data: exists } = await supabase.from('favorites').select('id').eq('user_id', userId).filter('book_data->>isbn', 'eq', book.isbn).single();
+                if (!exists) {
+                    await supabase.from('favorites').insert({ user_id: userId, book_data: book });
+                }
             }
         }
         if (localHist.length > 0) {
             for (const book of localHist) {
-                await supabase.from('search_history').upsert({ user_id: userId, book_data: book });
+                // Deduplicate history by deleting old entry before adding new (moves to top)
+                await supabase.from('search_history').delete().eq('user_id', userId).filter('book_data->>isbn', 'eq', book.isbn);
+                await supabase.from('search_history').insert({ user_id: userId, book_data: book });
             }
         }
 
@@ -122,10 +128,34 @@ const App: React.FC = () => {
 
     const loadFromCloud = async (userId: string) => {
         const { data: cloudFavs } = await supabase.from('favorites').select('book_data').eq('user_id', userId);
-        if (cloudFavs) setFavorites(cloudFavs.map(f => f.book_data));
+        if (cloudFavs) {
+            const uniqueFavs: any[] = [];
+            const seen = new Set();
+            cloudFavs.forEach(f => {
+                if (f.book_data?.isbn && !seen.has(f.book_data.isbn)) {
+                    seen.add(f.book_data.isbn);
+                    uniqueFavs.push(f.book_data);
+                }
+            });
+            setFavorites(uniqueFavs);
+        }
 
-        const { data: cloudHist } = await supabase.from('search_history').select('book_data').eq('user_id', userId).order('created_at', { ascending: false }).limit(10);
-        if (cloudHist) setHistory(cloudHist.map(h => h.book_data));
+        const { data: cloudHist } = await supabase.from('search_history')
+            .select('book_data')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(20); // Get more to allow for dedup down to 10
+        if (cloudHist) {
+            const uniqueHist: any[] = [];
+            const seen = new Set();
+            cloudHist.forEach(h => {
+                if (h.book_data?.isbn && !seen.has(h.book_data.isbn)) {
+                    seen.add(h.book_data.isbn);
+                    uniqueHist.push(h.book_data);
+                }
+            });
+            setHistory(uniqueHist.slice(0, 10));
+        }
     };
 
     const handleAuth = async (e: React.FormEvent) => {
@@ -145,6 +175,9 @@ const App: React.FC = () => {
                 const { error } = await supabase.auth.signUp({
                     email: authEmail,
                     password: authPassword,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
                 });
                 if (error) throw error;
                 setAuthMode('login');
@@ -169,7 +202,9 @@ const App: React.FC = () => {
         if (!bookData.title || !bookData.isbn) return;
 
         if (user) {
-            const { error } = await supabase.from('search_history').upsert({
+            // Deduplicate: remove existing entry for same book to avoid doubles and update "last seen"
+            await supabase.from('search_history').delete().eq('user_id', user.id).filter('book_data->>isbn', 'eq', bookData.isbn);
+            const { error } = await supabase.from('search_history').insert({
                 user_id: user.id,
                 book_data: bookData
             });
@@ -282,6 +317,12 @@ const App: React.FC = () => {
     const handleSearch = async (e?: React.FormEvent | Event, overrideTitle?: string) => {
         console.log("handleSearch called", { overrideTitle, bookInput, searchFilters });
         if (e) e.preventDefault();
+
+        if (!user) {
+            setAuthMode('login');
+            setShowAuthModal(true);
+            return;
+        }
 
         let queryToSearch = overrideTitle || bookInput;
         setLastQuery(queryToSearch);
@@ -592,13 +633,15 @@ const App: React.FC = () => {
                             </nav>
                         )}
 
-                        <button
-                            onClick={() => setShowFavoritesModal(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg border border-gray-200 dark:border-gray-700 hover:text-red-500 transition-colors text-xs font-bold"
-                        >
-                            <Heart size={14} className="text-red-500 fill-red-500" />
-                            Favoritos
-                        </button>
+                        {user && (
+                            <button
+                                onClick={() => setShowFavoritesModal(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg border border-gray-200 dark:border-gray-700 hover:text-red-500 transition-colors text-xs font-bold"
+                            >
+                                <Heart size={14} className="text-red-500 fill-red-500" />
+                                Favoritos
+                            </button>
+                        )}
 
                         {user ? (
                             <div className="flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-gray-700 ml-1">
@@ -628,13 +671,15 @@ const App: React.FC = () => {
                             </button>
                         )}
 
-                        <button
-                            onClick={() => setShowHistoryModal(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg border border-gray-200 dark:border-gray-700 hover:text-blue-600 transition-colors text-xs font-bold"
-                        >
-                            <RefreshCcw size={14} className="rotate-180" />
-                            Histórico
-                        </button>
+                        {user && (
+                            <button
+                                onClick={() => setShowHistoryModal(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg border border-gray-200 dark:border-gray-700 hover:text-blue-600 transition-colors text-xs font-bold"
+                            >
+                                <RefreshCcw size={14} className="rotate-180" />
+                                Histórico
+                            </button>
+                        )}
 
                         <button
                             onClick={() => setIsDark(!isDark)}

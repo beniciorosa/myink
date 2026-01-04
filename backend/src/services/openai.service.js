@@ -9,8 +9,12 @@ function debugLog(msg) {
 }
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.OPENAI_API_KEY || 'fake-key'
 });
+
+if (!process.env.OPENAI_API_KEY) {
+    console.log("[AVISO] OPENAI_API_KEY não encontrada nas variáveis de ambiente!");
+}
 
 /**
  * Transforms a discovery query into structured search parameters.
