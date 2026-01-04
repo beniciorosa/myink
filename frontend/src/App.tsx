@@ -215,7 +215,9 @@ const App: React.FC = () => {
                     publisher: result.publisher || data.publisher,
                     pages: result.pages || data.pages,
                     publishDate: result.publishDate || data.publishDate,
-                    isbn: result.isbn || data.isbn
+                    isbn: result.isbn || data.isbn,
+                    language: result.language || data.language,
+                    genre: result.genre || data.genre
                 };
                 setData(updatedData);
 

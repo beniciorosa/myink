@@ -53,7 +53,9 @@ export const forceFetchCover = async (title: string, author: string, isbn?: stri
     publisher?: string | null,
     pages?: number | null,
     publishDate?: string | null,
-    isbn?: string | null
+    isbn?: string | null,
+    language?: string | null,
+    genre?: string | null
 }> => {
     const response = await api.post('/force-cover', { title, author, isbn, publisher });
     return response.data;

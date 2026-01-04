@@ -442,6 +442,7 @@ const getBetterCover = async (title, author) => {
           pages: bData.pages || coverOnly.pages,
           isbn: isbnClean,
           genre: bData.genre || coverOnly.genre,
+          language: coverOnly.language || 'Português',
           publisher: bData.publisher || coverOnly.publisher,
           synopsis: bData.synopsis || coverOnly.synopsis,
           resolvedTitle: bData.resolvedTitle,
@@ -456,16 +457,17 @@ const getBetterCover = async (title, author) => {
           pages: olData.pages,
           isbn: title,
           genre: olData.genre,
+          language: olData.language || 'Português',
           resolvedTitle: olData.resolvedTitle,
           resolvedAuthor: olData.resolvedAuthor
         };
       }
     }
 
-    return { coverUrl: null, pages: null, isbn: null, genre: null, publisher: null, synopsis: null, resolvedTitle: null, resolvedAuthor: null };
+    return { coverUrl: null, pages: null, isbn: null, genre: null, language: null, publisher: null, synopsis: null, resolvedTitle: null, resolvedAuthor: null };
   } catch (err) {
     console.error("Erro ao buscar informações:", err);
-    return { coverUrl: null, pages: null, isbn: null, genre: null, publisher: null, synopsis: null, resolvedTitle: null, resolvedAuthor: null };
+    return { coverUrl: null, pages: null, isbn: null, genre: null, language: null, publisher: null, synopsis: null, resolvedTitle: null, resolvedAuthor: null };
   }
 };
 
