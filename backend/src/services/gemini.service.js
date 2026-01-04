@@ -64,20 +64,47 @@ const BR_PUBLISHERS = [
 
 const LANGUAGE_MAP = {
   'pt': 'Português',
-  'pt-BR': 'Português',
+  'pt-br': 'Português',
   'en': 'Inglês',
   'es': 'Espanhol',
   'fr': 'Francês',
   'de': 'Alemão',
   'it': 'Italiano',
   'ja': 'Japonês',
-  'zh': 'Chinês'
+  'zh': 'Chinês',
+  'ru': 'Russo'
 };
 
 const resolveLanguageName = (code) => {
   if (!code) return 'Desconhecido';
   const clean = code.toLowerCase().split('-')[0];
-  return LANGUAGE_MAP[clean] || code;
+  const full = code.toLowerCase();
+  return LANGUAGE_MAP[full] || LANGUAGE_MAP[clean] || code;
+};
+
+const getBrasilAPIData = async (isbn) => {
+  try {
+    const cleanIsbn = isbn.replace(/\D/g, '');
+    const url = `https://brasilapi.com.br/api/isbn/v1/${cleanIsbn}`;
+    debugLog(`Buscando metadata no BrasilAPI: ${url}`);
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        resolvedTitle: data.title,
+        resolvedAuthor: data.authors ? data.authors[0] : null,
+        publisher: data.publisher,
+        pages: data.page_count,
+        genre: data.subjects ? data.subjects[0] : null,
+        synopsis: data.synopsis,
+        year: data.year,
+        source: 'BrasilAPI'
+      };
+    }
+  } catch (err) {
+    debugLog(`Erro BrasilAPI: ${err.message}`);
+  }
+  return null;
 };
 
 const classifySearchQuery = async (query) => {
@@ -321,27 +348,7 @@ const identifyBookByIsbn = async (isbn) => {
   }
 };
 
-const getBrasilApiData = async (isbn) => {
-  try {
-    const cleanIsbn = isbn.replace(/\D/g, '');
-    const url = `https://brasilapi.com.br/api/isbn/v1/${cleanIsbn}`;
-    debugLog(`Buscando no BrasilAPI: ${url}`);
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return {
-      resolvedTitle: data.title,
-      resolvedAuthor: data.authors && data.authors.length > 0 ? data.authors[0] : null,
-      publisher: data.publisher,
-      pages: data.page_count > 0 ? data.page_count : null,
-      genre: data.subjects && data.subjects.length > 0 ? data.subjects[0] : null,
-      synopsis: data.synopsis || null
-    };
-  } catch (err) {
-    debugLog(`Erro BrasilAPI: ${err.message}`);
-    return null;
-  }
-};
+// getBrasilAPIData is already defined above at line 85
 
 const getBetterCover = async (title, author) => {
   try {
@@ -354,7 +361,7 @@ const getBetterCover = async (title, author) => {
     // Se for ISBN e Brasileiro (começa com 85, 97885, 97865), tenta BrasilAPI primeiro
     let resolvedFromBrasil = null;
     if (isIsbn && (isbnClean.startsWith('85') || isbnClean.startsWith('97885') || isbnClean.startsWith('97865'))) {
-      resolvedFromBrasil = await getBrasilApiData(isbnClean);
+      resolvedFromBrasil = await getBrasilAPIData(isbnClean);
       if (resolvedFromBrasil) {
         debugLog(`BrasilAPI encontrou: ${resolvedFromBrasil.resolvedTitle}`);
       }
@@ -443,7 +450,7 @@ const getBetterCover = async (title, author) => {
 
     // Se falhou Google e é ISBN, tenta BrasilAPI e depois OpenLibrary
     if (isIsbn) {
-      const bData = resolvedFromBrasil || await getBrasilApiData(isbnClean);
+      const bData = resolvedFromBrasil || await getBrasilAPIData(isbnClean);
       if (bData) {
         // Tenta buscar capa pelo título descoberto no BrasilAPI
         const coverOnly = await getBetterCover(bData.resolvedTitle, bData.resolvedAuthor || "");
@@ -520,9 +527,9 @@ const fetchBookBasicInfo = async (bookTitle) => {
       pages: extraInfo.pages,
       isbn: extraInfo.isbn,
       genre: extraInfo.genre,
-      coverUrl: extraInfo.coverUrl || `https://placehold.co/400x600/f8fafc/64748b?text=${encodeURIComponent(extraInfo.resolvedTitle || bookTitle)}`,
+      coverUrl: (extraInfo.coverUrl || "").replace("&edge=curl", "").replace("zoom=1", "zoom=3") || `https://placehold.co/400x600/f8fafc/64748b?text=${encodeURIComponent(extraInfo.resolvedTitle || bookTitle)}`,
       synopsis: extraInfo.synopsis || null,
-      language: extraInfo.language || 'Desconhecido',
+      language: ISO_LANG_MAP[extraInfo.language] || extraInfo.language || 'Desconhecido',
       originalTitle: null,
       publishDate: extraInfo.publishDate || null
     };
@@ -552,9 +559,10 @@ const fetchBookBasicInfo = async (bookTitle) => {
       
       Retorne JSON:
       {
-        "translatedGenre": "gênero traduzido",
+        "translatedGenre": "gênero traduzido (ex: Ficção, Biografia)",
         "originalTitle": "título na língua original do autor (se for brasileiro, repita o título)",
-        "publishYear": "apenas o ano"
+        "publishYear": "apenas o ano",
+        "translatedLanguage": "nome do idioma em português (ex: Inglês, Francês)"
       }`;
       const locResult = await model.generateContent(locPrompt);
       const locData = JSON.parse(sanitizeJson(locResult.response.text()));
@@ -562,8 +570,14 @@ const fetchBookBasicInfo = async (bookTitle) => {
       if (locData.translatedGenre) finalResult.genre = locData.translatedGenre;
       if (locData.originalTitle) finalResult.originalTitle = locData.originalTitle;
       if (locData.publishYear && locData.publishYear !== "0") finalResult.publishDate = String(locData.publishYear);
+      if (locData.translatedLanguage) finalResult.language = locData.translatedLanguage;
     } catch (locErr) {
       debugLog(`Erro na localização: ${locErr.message}`);
+    }
+
+    // Double check language localization if AI stage failed
+    if (!finalResult.language || finalResult.language === 'Desconhecido') {
+      finalResult.language = resolveLanguageName(extraInfo.language);
     }
 
     // Double check year formatting
