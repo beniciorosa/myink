@@ -50,6 +50,12 @@ const App: React.FC = () => {
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
     const [noteFilter, setNoteFilter] = useState<'All' | 'Note' | 'Flashcard' | 'Character' | 'Quote'>('All');
 
+    // Leitura Ativa States
+    const [sessionSeconds, setSessionSeconds] = useState(0);
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [sessionPagesRead, setSessionPagesRead] = useState(0);
+    const [quickSessionNote, setQuickSessionNote] = useState('');
+
     // Supabase States
     const [user, setUser] = useState<SupabaseUser | null>(null);
     const [profile, setProfile] = useState<{ is_admin: boolean } | null>(null);
@@ -113,6 +119,17 @@ const App: React.FC = () => {
 
         return () => subscription.unsubscribe();
     }, []);
+
+    // Timer Effect for Leitura Ativa
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isTimerRunning) {
+            interval = setInterval(() => {
+                setSessionSeconds(s => s + 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isTimerRunning]);
 
     const fetchProfile = async (userId: string) => {
         const { data, error } = await supabase
@@ -654,6 +671,23 @@ const App: React.FC = () => {
         setSelectedNote(newNote);
     };
 
+    const formatTime = (totalSeconds: number) => {
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const startSession = () => {
+        setIsTimerRunning(true);
+        setState(AppState.ACTIVE_READING);
+    };
+
+    const stopSession = () => {
+        setIsTimerRunning(false);
+        // Optionally save session data here
+        setState(AppState.SHELF);
+    };
+
     const reset = () => {
         setState(AppState.IDLE);
         setBookInput('');
@@ -702,6 +736,14 @@ const App: React.FC = () => {
                         >
                             <span className={`material-symbols-outlined text-[20px] ${state === AppState.SHELF ? 'filled' : ''}`}>library_books</span>
                             <p className="text-sm font-semibold tracking-tight">Minha Estante</p>
+                        </button>
+                        <div className="my-2 border-t border-slate-100 dark:border-surface-input/10" />
+                        <button
+                            onClick={() => setState(AppState.ACTIVE_READING)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${state === AppState.ACTIVE_READING ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-text-secondary hover:bg-slate-50 dark:hover:bg-surface-input/50 hover:text-primary dark:hover:text-white'}`}
+                        >
+                            <span className={`material-symbols-outlined text-[20px] ${state === AppState.ACTIVE_READING ? 'filled' : ''}`}>timer</span>
+                            <p className="text-sm font-semibold tracking-tight">Leitura Ativa</p>
                         </button>
                         <button
                             onClick={() => setShowFavoritesModal(true)}
@@ -1799,11 +1841,177 @@ const App: React.FC = () => {
                                 </div>
                             </motion.div>
                         )}
+
+                        {state === AppState.ACTIVE_READING && (
+                            <motion.div
+                                key="active-reading"
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="h-full -m-6 flex flex-col bg-background-light dark:bg-background-dark overflow-y-auto custom-scrollbar"
+                            >
+                                <div className="p-8 max-w-6xl mx-auto w-full flex flex-col gap-8">
+                                    <div className="flex items-center justify-between">
+                                        <button
+                                            onClick={() => setState(AppState.SHELF)}
+                                            className="inline-flex items-center text-sm font-bold text-slate-500 dark:text-text-secondary hover:text-primary transition-colors uppercase tracking-widest"
+                                        >
+                                            <span className="material-symbols-outlined text-lg mr-2">arrow_back</span>
+                                            Voltar para Estante
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                                        {/* LEFT INFO COLUMN */}
+                                        <div className="lg:col-span-4 flex flex-col gap-6">
+                                            <div className="bg-white dark:bg-surface-dark rounded-[32px] p-8 border border-slate-100 dark:border-surface-input/20 shadow-xl relative overflow-hidden">
+                                                <div className="absolute -top-4 -right-4 size-32 opacity-5 pointer-events-none">
+                                                    <span className="material-symbols-outlined text-[120px] text-slate-900 dark:text-white">menu_book</span>
+                                                </div>
+                                                <div className="relative z-10 flex flex-col items-center text-center">
+                                                    <div className="w-44 aspect-[2/3] rounded-2xl shadow-2xl overflow-hidden bg-slate-100 mb-8 group cursor-pointer border-4 border-white dark:border-surface-input/20">
+                                                        <img
+                                                            alt="Capa do livro"
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                            src={data?.coverUrl || "https://images.unsplash.com/photo-1543005087-b452d3220622?q=80&w=1976&auto=format&fit=crop"}
+                                                        />
+                                                    </div>
+                                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">{data?.title || 'O Grande Gatsby'}</h2>
+                                                    <p className="text-slate-500 dark:text-text-secondary font-bold text-sm uppercase tracking-widest mb-8">{data?.author || 'F. Scott Fitzgerald'}</p>
+                                                    <div className="w-full bg-slate-100 dark:bg-surface-input h-3 rounded-full mb-3 overflow-hidden">
+                                                        <div className="bg-primary h-full rounded-full relative overflow-hidden transition-all duration-1000" style={{ width: '45%' }}>
+                                                            <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between w-full text-[10px] font-black text-slate-400 dark:text-text-secondary uppercase tracking-[0.2em]">
+                                                        <span>CAPÍTULO ATUAL</span>
+                                                        <span className="text-primary">45%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-primary/5 dark:bg-primary/10 rounded-[32px] p-8 border border-primary/10 dark:border-primary/20">
+                                                <h3 className="text-primary font-black mb-6 flex items-center gap-3 uppercase tracking-widest text-xs">
+                                                    <span className="material-symbols-outlined filled">trending_up</span>
+                                                    Métricas da Sessão
+                                                </h3>
+                                                <div className="space-y-6">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-500 dark:text-text-secondary font-bold text-[10px] uppercase tracking-widest">Páginas lidas</span>
+                                                        <span className="font-black text-slate-900 dark:text-white text-lg">{sessionPagesRead}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-500 dark:text-text-secondary font-bold text-[10px] uppercase tracking-widest">Ritmo médio</span>
+                                                        <span className="font-black text-slate-900 dark:text-white text-lg">-- min/pág</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* MAIN TIMER COLUMN */}
+                                        <div className="lg:col-span-8 flex flex-col gap-6">
+                                            <div className="bg-white dark:bg-surface-dark rounded-[48px] p-12 border border-slate-100 dark:border-surface-input/20 shadow-2xl flex flex-col items-center justify-center min-h-[450px] relative overflow-hidden">
+                                                <div className="absolute top-8 right-8">
+                                                    <span className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-100 dark:border-emerald-800/50 shadow-sm">
+                                                        <span className={`size-2.5 rounded-full bg-emerald-500 ${isTimerRunning ? 'animate-pulse' : ''}`} />
+                                                        {isTimerRunning ? 'Leitura em andamento' : 'Sessão Pausada'}
+                                                    </span>
+                                                </div>
+
+                                                <div className="text-center mb-16 relative">
+                                                    <div className="font-mono text-[8rem] md:text-[10rem] font-black text-slate-900 dark:text-white tracking-tighter tabular-nums leading-none select-none transition-all">
+                                                        {formatTime(sessionSeconds)}
+                                                    </div>
+                                                    <p className="text-slate-400 dark:text-text-secondary text-xs font-black uppercase tracking-[0.3em] mt-4">Foco Dimensional Ativo</p>
+                                                </div>
+
+                                                <div className="flex items-center gap-8">
+                                                    <button
+                                                        onClick={() => setIsTimerRunning(false)}
+                                                        className="group flex flex-col items-center gap-3 text-slate-400 transition-all hover:scale-105"
+                                                    >
+                                                        <div className="size-20 rounded-full border-2 border-slate-100 dark:border-surface-input/30 bg-white dark:bg-surface-dark hover:border-amber-400 dark:hover:border-amber-500 flex items-center justify-center transition-all shadow-lg">
+                                                            <span className="material-symbols-outlined text-3xl transition-transform filled group-hover:text-amber-500">pause</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Pausar</span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => setIsTimerRunning(true)}
+                                                        className="group flex flex-col items-center gap-3 transition-all hover:scale-110 active:scale-95 translate-y-[-10px]"
+                                                    >
+                                                        <div className="size-24 rounded-full bg-primary text-white shadow-2xl shadow-primary/40 hover:bg-blue-600 flex items-center justify-center transition-all">
+                                                            <span className="material-symbols-outlined text-[48px] filled">play_arrow</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary italic">Sincronizar</span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={stopSession}
+                                                        className="group flex flex-col items-center gap-3 text-slate-400 transition-all hover:scale-105"
+                                                    >
+                                                        <div className="size-20 rounded-full border-2 border-slate-100 dark:border-surface-input/30 bg-white dark:bg-surface-dark hover:border-red-400 dark:hover:border-red-500 flex items-center justify-center transition-all shadow-lg">
+                                                            <span className="material-symbols-outlined text-3xl transition-transform filled group-hover:text-red-500">stop</span>
+                                                        </div>
+                                                        <span className="text-[10px) font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Encerrar</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="bg-white dark:bg-surface-dark rounded-[40px] p-8 border border-slate-100 dark:border-surface-input/20 shadow-xl flex flex-col justify-between">
+                                                    <div>
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <span className="material-symbols-outlined text-primary size-8 bg-primary/10 rounded-xl flex items-center justify-center">auto_stories</span>
+                                                            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight">Progresso Dimensional</h3>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-slate-400 dark:text-text-secondary uppercase tracking-widest mb-8">Atualize seu marcador temporal</p>
+                                                        <div className="flex items-center gap-4 mb-4">
+                                                            <div className="relative flex-1 group">
+                                                                <input
+                                                                    className="w-full rounded-2xl border-none bg-slate-50 dark:bg-surface-input/50 text-2xl font-black text-slate-900 dark:text-white py-5 px-6 focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                                                    placeholder="98"
+                                                                    type="number"
+                                                                    value={sessionPagesRead || ''}
+                                                                    onChange={(e) => setSessionPagesRead(parseInt(e.target.value) || 0)}
+                                                                />
+                                                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">PÁG</span>
+                                                            </div>
+                                                            <div className="text-slate-400 font-black text-xs uppercase tracking-widest">
+                                                                de {data?.pages || 218}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button className="w-full mt-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-5 rounded-[20px] font-black uppercase tracking-[0.2em] text-[10px] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-xl">
+                                                        <span className="material-symbols-outlined text-[18px]">save</span>
+                                                        Consolidar Página
+                                                    </button>
+                                                </div>
+
+                                                <div className="bg-white dark:bg-surface-dark rounded-[40px] p-8 border border-slate-100 dark:border-surface-input/20 shadow-xl flex flex-col">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className="material-symbols-outlined text-amber-500 size-8 bg-amber-500/10 rounded-xl flex items-center justify-center">lightbulb</span>
+                                                        <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight">Insights Críticos</h3>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-slate-400 dark:text-text-secondary uppercase tracking-widest mb-6">Capture pensamentos em tempo real</p>
+                                                    <textarea
+                                                        className="w-full flex-1 rounded-2xl border-none bg-amber-50/30 dark:bg-surface-input/30 text-slate-700 dark:text-text-secondary resize-none focus:ring-4 focus:ring-amber-500/10 p-6 text-sm font-medium leading-relaxed placeholder:text-slate-300 dark:placeholder:text-surface-input/50"
+                                                        placeholder="Digite seus pensamentos aqui..."
+                                                        value={quickSessionNote}
+                                                        onChange={(e) => setQuickSessionNote(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
                     </AnimatePresence>
                 </div>
             </main>
 
-            {/* View Transition Area padding */}
+            {/* Mobile Navigation Padding */}
             <div className="h-20 shrink-0 lg:hidden" />
         </div>
     );
