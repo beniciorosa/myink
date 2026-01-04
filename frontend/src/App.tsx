@@ -798,8 +798,8 @@ const App: React.FC = () => {
 
             {/* MAIN CONTENT AREA */}
             <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light">
-                {/* DYNAMIC HEADER - Hidden in NOTES view as it has its own header */}
-                {state !== AppState.NOTES && (
+                {/* DYNAMIC HEADER - Hidden in NOTES and SEARCH_RESULTS views as they have their own headers */}
+                {state !== AppState.NOTES && state !== AppState.SEARCH_RESULTS && (
                     <header className="bg-white/80 dark:bg-[#151f2b]/80 backdrop-blur-md sticky top-0 z-10 px-8 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-6">
                         <div className="flex items-center lg:hidden gap-2">
                             <span className="material-symbols-outlined text-primary text-2xl filled">auto_stories</span>
@@ -974,209 +974,156 @@ const App: React.FC = () => {
 
                         {state === AppState.SEARCH_RESULTS && (
                             <motion.div
-                                key="search_results"
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.98 }}
-                                className="max-w-7xl mx-auto flex flex-col gap-8"
+                                key="explore"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="bg-background-light dark:bg-background-dark min-h-screen font-display text-slate-900 dark:text-white"
                             >
-                                {/* HEADER & CONTROLS */}
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-surface-dark p-6 md:p-8 rounded-[32px] border border-slate-100 dark:border-surface-input/30 shadow-sm">
-                                    <div className="flex flex-col gap-1">
-                                        <div className="flex items-center gap-3">
-                                            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                                                Resultados: <span className="text-target-primary text-primary">"{lastQuery}"</span>
-                                            </h2>
-                                            <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/20 animate-pulse">
-                                                IA Rerank Ativo
-                                            </span>
-                                        </div>
-                                        <p className="text-slate-500 dark:text-text-secondary font-medium italic">
-                                            Encontramos {searchResults.length} obras que podem te interessar.
-                                        </p>
-                                    </div>
-
-                                    <div className="flex items-center gap-4">
-                                        {/* View Switcher */}
-                                        <div className="flex bg-slate-100 dark:bg-surface-input p-1 rounded-2xl border border-slate-200 dark:border-transparent">
-                                            <button
-                                                onClick={() => setSearchViewMode('grid')}
-                                                className={`p-2.5 rounded-xl transition-all ${searchViewMode === 'grid' ? 'bg-white dark:bg-surface-dark shadow-md text-primary' : 'text-slate-400 hover:text-slate-600'}`}
-                                            >
-                                                <Layout size={20} />
-                                            </button>
-                                            <button
-                                                onClick={() => setSearchViewMode('list')}
-                                                className={`p-2.5 rounded-xl transition-all ${searchViewMode === 'list' ? 'bg-white dark:bg-surface-dark shadow-md text-primary' : 'text-slate-400 hover:text-slate-600'}`}
-                                            >
-                                                <List size={20} />
-                                            </button>
-                                        </div>
-
-                                        <button
-                                            onClick={() => setState(AppState.IDLE)}
-                                            className="px-6 py-3 bg-slate-100 dark:bg-surface-input hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-text-secondary rounded-2xl transition-all font-bold text-xs uppercase tracking-widest border border-slate-200 dark:border-transparent flex items-center gap-2"
-                                        >
-                                            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                                            Voltar
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* CATEGORY FILTERS */}
-                                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mr-2 shrink-0">Filtrar por:</span>
-                                    {['Todos', 'Ficção', 'Ciência', 'História', 'Negócios', 'Filosofia', 'Tecnologia'].map(cat => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => { setBookInput(`${lastQuery} ${cat === 'Todos' ? '' : cat}`); handleSearch(null as any, `${lastQuery} ${cat === 'Todos' ? '' : cat}`); }}
-                                            className="px-5 py-2 whitespace-nowrap bg-white dark:bg-surface-dark border border-slate-100 dark:border-surface-input/30 rounded-2xl text-xs font-bold text-slate-600 dark:text-text-secondary hover:text-primary dark:hover:text-white hover:border-primary/40 hover:shadow-md transition-all"
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* RESULTS GRID/LIST */}
-                                {searchViewMode === 'grid' ? (
-                                    <motion.div
-                                        layout
-                                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
-                                    >
-                                        {searchResults.map((book, idx) => (
-                                            <motion.div
-                                                key={book.id || book.isbn || idx}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: idx * 0.05 }}
-                                                className="relative group cursor-pointer"
-                                                onClick={() => handleSelectFromSearch(book)}
-                                            >
-                                                <div className="relative aspect-[2/3] rounded-[24px] overflow-hidden bg-slate-200 dark:bg-surface-input shadow-lg group-hover:shadow-2xl group-hover:shadow-primary/20 transition-all duration-500 border border-slate-100 dark:border-white/5 ring-0 group-hover:ring-4 ring-primary/10">
-                                                    {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
-                                                        <img
-                                                            src={book.coverUrl}
-                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                                            alt={book.title}
-                                                            referrerPolicy="no-referrer"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-surface-input dark:to-surface-dark">
-                                                            <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-[48px] mb-2 font-light italic">book</span>
-                                                            <span className="text-[10px] font-black uppercase text-slate-400 leading-tight line-clamp-3 italic">{book.title}</span>
+                                <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root">
+                                    <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#101922]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+                                        <div className="layout-container flex h-full grow flex-col">
+                                            <div className="px-4 md:px-10 lg:px-40 flex justify-center">
+                                                <div className="flex items-center justify-between w-full max-w-[960px] py-3">
+                                                    <div className="flex items-center gap-4 text-slate-900 dark:text-white cursor-pointer" onClick={() => setState(AppState.IDLE)}>
+                                                        <div className="size-8 text-primary">
+                                                            <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                                                <path d="M13.8261 17.4264C16.7203 18.1174 20.2244 18.5217 24 18.5217C27.7756 18.5217 31.2797 18.1174 34.1739 17.4264C36.9144 16.7722 39.9967 15.2331 41.3563 14.1648L24.8486 40.6391C24.4571 41.267 23.5429 41.267 23.1514 40.6391L6.64374 14.1648C8.00331 15.2331 11.0856 16.7722 13.8261 17.4264Z" fill="currentColor"></path>
+                                                                <path clipRule="evenodd" d="M39.998 12.236C39.9944 12.2537 39.9875 12.2845 39.9748 12.3294C39.9436 12.4399 39.8949 12.5741 39.8346 12.7175C39.8168 12.7597 39.7989 12.8007 39.7813 12.8398C38.5103 13.7113 35.9788 14.9393 33.7095 15.4811C30.9875 16.131 27.6413 16.5217 24 16.5217C20.3587 16.5217 17.0125 16.131 14.2905 15.4811C12.0012 14.9346 9.44505 13.6897 8.18538 12.8168C8.17384 12.7925 8.16216 12.767 8.15052 12.7408C8.09919 12.6249 8.05721 12.5114 8.02977 12.411C8.00356 12.3152 8.00039 12.2667 8.00004 12.2612C8.00004 12.261 8 12.2607 8.00004 12.2612C8.00004 12.2359 8.0104 11.9233 8.68485 11.3686C9.34546 10.8254 10.4222 10.2469 11.9291 9.72276C14.9242 8.68098 19.1919 8 24 8C28.8081 8 33.0758 8.68098 36.0709 9.72276C37.5778 10.2469 38.6545 10.8254 39.3151 11.3686C39.9006 11.8501 39.9857 12.1489 39.998 12.236ZM4.95178 15.2312L21.4543 41.6973C22.6288 43.5809 25.3712 43.5809 26.5457 41.6973L43.0534 15.223C43.0709 15.1948 43.0878 15.1662 43.104 15.1371L41.3563 14.1648C43.104 15.1371 43.1038 15.1374 43.104 15.1371L43.1051 15.135L43.1065 15.1325L43.1101 15.1261L43.1199 15.1082C43.1276 15.094 43.1377 15.0754 43.1497 15.0527C43.1738 15.0075 43.2062 14.9455 43.244 14.8701C43.319 14.7208 43.4196 14.511 43.5217 14.2683C43.6901 13.8679 44 13.0689 44 12.2609C44 10.5573 43.003 9.22254 41.8558 8.2791C40.6947 7.32427 39.1354 6.55361 37.385 5.94477C33.8654 4.72057 29.133 4 24 4C18.867 4 14.1346 4.72057 10.615 5.94478C8.86463 6.55361 7.30529 7.32428 6.14419 8.27911C4.99695 9.22255 3.99999 10.5573 3.99999 12.2609C3.99999 13.1275 4.29264 13.9078 4.49321 14.3607C4.60375 14.6102 4.71348 14.8196 4.79687 14.9689C4.83898 15.0444 4.87547 15.1065 4.9035 15.1529C4.91754 15.1762 4.92954 15.1957 4.93916 15.2111L4.94662 15.223L4.95178 15.2312ZM35.9868 18.996L24 38.22L12.0131 18.996C12.4661 19.1391 12.9179 19.2658 13.3617 19.3718C16.4281 20.1039 20.0901 20.5217 24 20.5217C27.9099 20.5217 31.5719 20.1039 34.6383 19.3718C35.082 19.2658 35.5339 19.1391 35.9868 18.996Z" fill="currentColor" fillRule="evenodd"></path>
+                                                            </svg>
                                                         </div>
-                                                    )}
-
-                                                    {/* Favorite Button on Hover */}
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            const isFav = favorites.find(f => f.isbn === book.isbn || f.title === book.title);
-                                                            if (isFav) {
-                                                                const newFavs = favorites.filter(f => (f.isbn !== book.isbn && f.title !== book.title));
-                                                                setFavorites(newFavs);
-                                                                localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                            } else {
-                                                                const newFavs = [...favorites, book];
-                                                                setFavorites(newFavs);
-                                                                localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                            }
-                                                        }}
-                                                        className={`absolute top-4 right-4 z-20 size-10 rounded-2xl backdrop-blur-md flex items-center justify-center transition-all duration-300 transform scale-90 group-hover:scale-100 ${favorites.find(f => f.isbn === book.isbn || f.title === book.title)
-                                                            ? 'bg-red-500 text-white opacity-100'
-                                                            : 'bg-white/90 dark:bg-black/40 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 shadow-xl'
-                                                            }`}
-                                                    >
-                                                        <Heart size={18} className={favorites.find(f => f.isbn === book.isbn || f.title === book.title) ? 'fill-white' : ''} />
-                                                    </button>
-
-                                                    {/* Overlay info on hover */}
-                                                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest line-clamp-1 italic">{book.author}</p>
+                                                        <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">MYINK</h2>
+                                                    </div>
+                                                    <div className="hidden md:flex flex-1 justify-end gap-8">
+                                                        <div className="flex items-center gap-6 lg:gap-9">
+                                                            <a className="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors cursor-pointer" onClick={() => setState(AppState.SHELF)}>Minha Biblioteca</a>
+                                                            <a className="text-primary text-sm font-medium leading-normal border-b-2 border-primary pb-0.5 cursor-pointer">Pesquisar</a>
+                                                            <a className="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors cursor-pointer">Perfil</a>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <button className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                                                <span className="material-symbols-outlined text-xl">notifications</span>
+                                                            </button>
+                                                            <button className="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                                                <span className="material-symbols-outlined text-xl">account_circle</span>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                <div className="mt-4 px-1">
-                                                    <h3 className="text-sm font-black text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-primary transition-colors uppercase tracking-tight">
-                                                        {book.title}
-                                                    </h3>
-                                                    <p className="text-[11px] font-medium text-slate-500 dark:text-text-secondary mt-1 italic">{book.author}</p>
+                                            </div>
+                                        </div>
+                                    </header>
+                                    <div className="layout-container flex grow flex-col">
+                                        <div className="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
+                                            <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
+                                                <div className="mb-8 pt-4 pb-6 text-center">
+                                                    <h1 className="text-slate-900 dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
+                                                        Explore e Encontre sua Próxima Leitura
+                                                    </h1>
+                                                    <p className="text-slate-600 dark:text-slate-400 text-base md:text-lg font-normal leading-relaxed mt-2">
+                                                        Milhões de livros ao seu alcance.
+                                                    </p>
                                                 </div>
-                                            </motion.div>
-                                        ))}
-                                    </motion.div>
-                                ) : (
-                                    <div className="flex flex-col gap-4">
-                                        {searchResults.map((book, idx) => (
-                                            <motion.div
-                                                key={book.id || book.isbn || idx}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: idx * 0.03 }}
-                                                className="flex items-center gap-6 bg-white dark:bg-surface-dark p-4 rounded-[28px] border border-slate-100 dark:border-surface-input/30 shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 transition-all group cursor-pointer"
-                                                onClick={() => handleSelectFromSearch(book)}
-                                            >
-                                                <div className="w-20 aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-md border border-slate-100 dark:border-white/5 bg-slate-100 dark:bg-surface-input">
-                                                    {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
-                                                        <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} referrerPolicy="no-referrer" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center p-2 text-[8px] text-slate-400 text-center font-black uppercase italic">
-                                                            {book.title}
+                                                <div className="@container mb-8">
+                                                    <label className="flex flex-col w-full h-12 shadow-md rounded-lg">
+                                                        <div className="flex w-full flex-1 items-stretch rounded-lg h-full bg-white dark:bg-slate-800 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700 focus-within:ring-2 focus-within:ring-primary transition-all">
+                                                            <div className="text-slate-400 dark:text-slate-500 flex items-center justify-center pl-4">
+                                                                <span className="material-symbols-outlined text-xl">search</span>
+                                                            </div>
+                                                            <input
+                                                                className="flex w-full min-w-0 flex-1 resize-none bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-0 h-full px-3 text-base"
+                                                                placeholder="Título, autor ou ISBN..."
+                                                                value={bookInput}
+                                                                onChange={(e) => setBookInput(e.target.value)}
+                                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as any, bookInput)}
+                                                            />
+                                                            <div className="flex items-center justify-center pr-1.5">
+                                                                <button
+                                                                    onClick={(e) => handleSearch(e as any, bookInput)}
+                                                                    className="flex cursor-pointer items-center justify-center rounded-md h-9 px-4 bg-primary hover:bg-blue-600 text-white text-sm font-bold transition-colors"
+                                                                >
+                                                                    <span className="truncate">Pesquisar</span>
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    )}
+                                                    </label>
                                                 </div>
-
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-start justify-between gap-4">
-                                                        <div className="flex flex-col gap-1">
-                                                            <h3 className="text-lg font-black text-slate-900 dark:text-white line-clamp-1 group-hover:text-primary transition-colors uppercase tracking-tight">
-                                                                {book.title}
-                                                            </h3>
-                                                            <p className="text-sm font-bold text-slate-500 dark:text-text-secondary italic">
-                                                                {book.author}
-                                                            </p>
-                                                        </div>
-
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                const isFav = favorites.find(f => f.isbn === book.isbn || f.title === book.title);
-                                                                if (isFav) {
-                                                                    const newFavs = favorites.filter(f => (f.isbn !== book.isbn && f.title !== book.title));
-                                                                    setFavorites(newFavs);
-                                                                    localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                                } else {
-                                                                    const newFavs = [...favorites, book];
-                                                                    setFavorites(newFavs);
-                                                                    localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
-                                                                }
-                                                            }}
-                                                            className={`p-3 rounded-2xl transition-all ${favorites.find(f => f.isbn === book.isbn || f.title === book.title)
-                                                                ? 'bg-red-50 dark:bg-red-500/10 text-red-500'
-                                                                : 'bg-slate-50 dark:bg-surface-input text-slate-300 hover:text-red-500'
-                                                                }`}
-                                                        >
-                                                            <Heart size={20} className={favorites.find(f => f.isbn === book.isbn || f.title === book.title) ? 'fill-red-500' : ''} />
+                                                <div className="flex flex-wrap gap-3 pb-6 border-b border-slate-200 dark:border-slate-800">
+                                                    <button className="group flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-4 pr-3 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                                                        <span className="text-sm font-medium">Relevância</span>
+                                                        <span className="material-symbols-outlined text-lg text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+                                                    </button>
+                                                    <button className="group flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-4 pr-3 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                                                        <span className="text-sm font-medium">Mais recentes</span>
+                                                        <span className="material-symbols-outlined text-lg text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+                                                    </button>
+                                                    <button className="group flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-4 pr-3 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                                                        <span className="text-sm font-medium">Gênero: Todos</span>
+                                                        <span className="material-symbols-outlined text-lg text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+                                                    </button>
+                                                    <button className="group flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-4 pr-3 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                                                        <span className="text-sm font-medium">Disponibilidade</span>
+                                                        <span className="material-symbols-outlined text-lg text-slate-400 group-hover:text-primary">keyboard_arrow_down</span>
+                                                    </button>
+                                                </div>
+                                                <div className="pt-6">
+                                                    <div className="flex items-center justify-between px-2 mb-4">
+                                                        <h2 className="text-[#0d141b] dark:text-white text-xl md:text-2xl font-bold leading-tight tracking-[-0.015em]">Resultados da pesquisa</h2>
+                                                        <span className="text-sm text-slate-500 font-medium">Mostrando {searchResults.length} resultados</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 p-2">
+                                                        {searchResults.map((book, idx) => (
+                                                            <div
+                                                                key={book.id || idx}
+                                                                className="group flex flex-col gap-3 cursor-pointer"
+                                                                onClick={() => handleSelectFromSearch(book)}
+                                                            >
+                                                                <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                                                    <div
+                                                                        className="w-full h-full bg-center bg-no-repeat bg-cover"
+                                                                        style={{ backgroundImage: `url("${book.coverUrl || 'https://placehold.co/400x600?text=Sem+Capa'}")` }}
+                                                                    >
+                                                                    </div>
+                                                                    <div
+                                                                        className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full p-1.5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const isFav = favorites.find(f => f.isbn === book.isbn);
+                                                                            const newFavs = isFav
+                                                                                ? favorites.filter(f => f.isbn !== book.isbn)
+                                                                                : [...favorites, book];
+                                                                            setFavorites(newFavs);
+                                                                            localStorage.setItem('myink_favorites', JSON.stringify(newFavs));
+                                                                        }}
+                                                                    >
+                                                                        <span className={`material-symbols-outlined text-lg block ${favorites.find(f => f.isbn === book.isbn) ? 'text-primary filled' : ''}`}>
+                                                                            {favorites.find(f => f.isbn === book.isbn) ? 'bookmark' : 'bookmark_add'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <h3 className="text-slate-900 dark:text-white text-base font-bold leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">{book.title}</h3>
+                                                                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1 line-clamp-1">{book.author}</p>
+                                                                    <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
+                                                                        <span className="material-symbols-outlined text-sm fill-current">star</span>
+                                                                        <span className="text-slate-600 dark:text-slate-300">4.5</span>
+                                                                        <span className="text-slate-400 font-normal ml-1">(120)</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex justify-center mt-12 mb-12">
+                                                        <button className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:border-primary hover:text-primary transition-all text-slate-600 dark:text-slate-300 font-medium text-sm">
+                                                            <span>Carregar mais livros</span>
+                                                            <span className="material-symbols-outlined text-lg">expand_more</span>
                                                         </button>
                                                     </div>
-
-                                                    <div className="mt-4 flex items-center gap-4">
-                                                        <span className="px-3 py-1 bg-slate-100 dark:bg-surface-input/50 rounded-lg text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-text-secondary border border-slate-100 dark:border-transparent">
-                                                            {book.publisher || 'Editora Desconhecida'}
-                                                        </span>
-                                                        {book.isbn && (
-                                                            <span className="text-[10px] font-bold text-slate-400 dark:text-text-secondary/50 uppercase italic tracking-tighter">ISBN: {book.isbn}</span>
-                                                        )}
-                                                    </div>
                                                 </div>
-
-                                                <div className="hidden md:flex items-center pr-4">
-                                                    <span className="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
-                                                </div>
-                                            </motion.div>
-                                        ))}
+                                            </div>
+                                        </div>
                                     </div>
-                                )}
+                                </div>
                             </motion.div>
                         )}
 
