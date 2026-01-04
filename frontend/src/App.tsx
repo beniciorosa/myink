@@ -131,23 +131,9 @@ const App: React.FC = () => {
                 throw new Error("Não encontramos livros para essa busca.");
             }
 
-            if (results.length === 1) {
-                // Se só tem um resultado definitivo (com sinopse geralmente), carrega direto
-                // Ou se for o item já "resolvido"
-                const book = results[0];
-                if (book.synopsis) {
-                    setData(book);
-                    saveToHistory(book);
-                    setState(AppState.SUMMARY);
-                } else {
-                    // Se veio da busca mas sem sinopse (ex: busca por autor), busca detalhes
-                    handleSelectFromSearch(book);
-                }
-            } else {
-                // Multiplos livros: mostra grid de resultados
-                setSearchResults(results);
-                setState(AppState.SEARCH_RESULTS);
-            }
+            // Sempre mostra o grid de resultados para permitir escolha manual
+            setSearchResults(results);
+            setState(AppState.SEARCH_RESULTS);
         } catch (err: any) {
             console.error(err);
             setError(err.message || "Não conseguimos processar sua busca. Tente algo diferente.");

@@ -103,6 +103,11 @@ const searchBooks = async (query, filters = {}) => {
         q = parts.join('+');
       }
 
+      // Adicionando um pequeno "boost" para o título se disponível
+      if (filters.title) {
+        q = `intitle:${encodeURIComponent(filters.title)}+${q}`;
+      }
+
       const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=15&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
       debugLog(`URL Busca Avançada: ${url}`);
       const res = await fetch(url);
@@ -168,9 +173,33 @@ const searchBooks = async (query, filters = {}) => {
         }
       }));
     } else {
-      // Intent TÍTULO ou fallback
-      const result = await fetchBookBasicInfo(query);
-      return [result]; // Retorna lista com 1 elemento
+      // Intent TÍTULO ou fallback: Agora sempre retorna MÚLTIPLOS resultados
+      const q = encodeURIComponent(query);
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=30&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
+      debugLog(`URL Busca Geral: ${url}`);
+      const res = await fetch(url);
+      const data = await res.json();
+
+      books = (data.items || []).map(item => {
+        const cover = (
+          item.volumeInfo.imageLinks?.extraLarge ||
+          item.volumeInfo.imageLinks?.large ||
+          item.volumeInfo.imageLinks?.medium ||
+          item.volumeInfo.imageLinks?.small ||
+          item.volumeInfo.imageLinks?.thumbnail ||
+          item.volumeInfo.imageLinks?.smallThumbnail ||
+          null
+        )?.replace("http://", "https://");
+
+        return {
+          id: item.id,
+          title: item.volumeInfo.title,
+          author: item.volumeInfo.authors ? item.volumeInfo.authors[0] : 'Desconhecido',
+          coverUrl: cover,
+          publisher: item.volumeInfo.publisher || 'Desconhecida',
+          isbn: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null
+        };
+      });
     }
 
     return books;
@@ -686,7 +715,7 @@ const fetchOtherEditions = async (title, author) => {
 
     // Stage 1: Strict match (No quotes for better compatibility)
     const q1 = `intitle:${cleanTitle}${cleanAuthor ? ` inauthor:${cleanAuthor}` : ''}`;
-    const url1 = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q1)}&maxResults=40${key ? `&key=${key}` : ''}`;
+    const url1 = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q1)}&maxResults=40&langRestrict=pt${key ? `&key=${key}` : ''}`;
     debugLog(`Buscando edições (S1): ${url1}`);
     const res1 = await fetch(url1);
     const data1 = await res1.json();
@@ -695,7 +724,7 @@ const fetchOtherEditions = async (title, author) => {
     // Stage 2: Title and Author as generic keywords
     if (items.length < 10) {
       const q2 = `${cleanTitle} ${cleanAuthor}`;
-      const url2 = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q2)}&maxResults=40${key ? `&key=${key}` : ''}`;
+      const url2 = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q2)}&maxResults=40&langRestrict=pt${key ? `&key=${key}` : ''}`;
       debugLog(`Buscando edições (S2): ${url2}`);
       const res2 = await fetch(url2);
       const data2 = await res2.json();
@@ -707,7 +736,7 @@ const fetchOtherEditions = async (title, author) => {
 
     // Stage 3: Title only (Broad)
     if (items.length < 10) {
-      const url3 = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(cleanTitle)}&maxResults=40${key ? `&key=${key}` : ''}`;
+      const url3 = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(cleanTitle)}&maxResults=40&langRestrict=pt${key ? `&key=${key}` : ''}`;
       debugLog(`Buscando edições (S3): ${url3}`);
       const res3 = await fetch(url3);
       const data3 = await res3.json();
@@ -737,7 +766,7 @@ const fetchOtherEditions = async (title, author) => {
         language: language
       };
     })
-      .filter(ed => ed.isbn && ed.publisher !== 'N/A')
+      .filter(ed => ed.publisher !== 'N/A' || ed.isbn) // Relaxed: allow if it has at least one of them
       .filter(ed => {
         const titleLower = ed.title.toLowerCase();
         const originalTitleLower = title.toLowerCase();
@@ -761,10 +790,14 @@ const fetchOtherEditions = async (title, author) => {
       })
       .filter((v, i, a) => a.findIndex(t => (t.isbn === v.isbn)) === i);
 
+    debugLog(`Total de edições filtradas: ${editions.length}`);
+
     // Ordenar por ano (descendente)
     return editions.sort((a, b) => {
-      return parseInt(b.year) - parseInt(a.year);
-    }).slice(0, 8);
+      const yearA = a.year === 'N/A' ? 0 : parseInt(a.year);
+      const yearB = b.year === 'N/A' ? 0 : parseInt(b.year);
+      return yearB - yearA;
+    }).slice(0, 10);
 
   } catch (err) {
     debugLog(`Erro ao buscar edições: ${err.message}`);
