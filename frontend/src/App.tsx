@@ -639,7 +639,7 @@ const App: React.FC = () => {
                                             >
                                                 <div className="aspect-[2/3] rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900 mb-3 shadow-md border border-gray-100 dark:border-gray-800 relative group/cover-card">
                                                     {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
-                                                        <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} />
+                                                        <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} referrerPolicy="no-referrer" />
                                                     ) : (
                                                         <div className="w-full h-full flex flex-col items-center justify-center p-2 text-[8px] uppercase font-black text-gray-300 dark:text-gray-700 text-center leading-tight tracking-tighter italic">
                                                             <span>{book.title}</span>
@@ -711,7 +711,7 @@ const App: React.FC = () => {
                                             >
                                                 <div className="w-16 h-24 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 flex-shrink-0 relative group/list-cover">
                                                     {book.coverUrl && !book.coverUrl.includes('placehold.co') ? (
-                                                        <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} />
+                                                        <img src={book.coverUrl} className="w-full h-full object-cover" alt={book.title} referrerPolicy="no-referrer" />
                                                     ) : (
                                                         <div className="w-full h-full flex flex-col items-center justify-center p-1 text-[8px] text-gray-400 dark:text-gray-600 text-center uppercase font-black leading-tight italic">
                                                             <span className="line-clamp-3">{book.title}</span>
@@ -846,8 +846,8 @@ const App: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Amazon-Style Horizontal Metadata Bar */}
-                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-y-4 gap-x-8 px-2">
+                                    {/* Amazon-Style Horizontal Metadata Bar - Refined per User Feedback */}
+                                    <div className="mt-8 flex flex-wrap items-center justify-between gap-y-4 gap-x-10 px-4 bg-gray-50/50 dark:bg-gray-800/20 py-4 rounded-2xl border border-gray-100 dark:border-gray-700/50">
                                         {[
                                             { label: 'Autor', value: data.author, icon: User },
                                             { label: 'Ano', value: data.publishDate, icon: Calendar },
@@ -857,13 +857,15 @@ const App: React.FC = () => {
                                             { label: 'Gênero', value: data.genre, icon: Tag },
                                             { label: 'ISBN', value: data.isbn, icon: Hash }
                                         ].map((item, idx) => (
-                                            <div key={idx} className="flex flex-col items-center gap-2 min-w-[80px]">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                                                    {item.label}
-                                                </span>
-                                                <div className="flex items-center gap-2">
-                                                    <item.icon size={16} className="text-blue-500" />
-                                                    <span className={`text-sm font-bold ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-800 dark:text-gray-100'}`}>
+                                            <div key={idx} className="flex items-center gap-3 group/meta">
+                                                <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
+                                                    <item.icon size={20} className="text-blue-500" />
+                                                </div>
+                                                <div className="flex flex-col -space-y-0.5">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                                        {item.label}
+                                                    </span>
+                                                    <span className={`text-[13px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
                                                         {item.value || 'N/A'}
                                                     </span>
                                                 </div>
@@ -882,6 +884,7 @@ const App: React.FC = () => {
                                                         src={data.coverUrl}
                                                         alt={data.title}
                                                         className="w-full h-full object-cover"
+                                                        referrerPolicy="no-referrer"
                                                         onError={(e) => {
                                                             (e.target as HTMLImageElement).src = `https://placehold.co/400x600/1a202c/ffffff?text=${encodeURIComponent(data.title!)}`;
                                                         }}
@@ -946,7 +949,11 @@ const App: React.FC = () => {
                                                                         className="w-full flex gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 hover:border-blue-400 transition-all text-left group"
                                                                     >
                                                                         <div className="w-8 h-12 rounded bg-gray-200 dark:bg-gray-700 flex-shrink-0 overflow-hidden shadow-sm">
-                                                                            <img src={ed.coverUrl || ''} className="w-full h-full object-cover" />
+                                                                            <img
+                                                                                src={ed.coverUrl || ''}
+                                                                                className="w-full h-full object-cover"
+                                                                                referrerPolicy="no-referrer"
+                                                                            />
                                                                         </div>
                                                                         <div className="flex-grow min-w-0">
                                                                             <h4 className="text-[10px] font-bold truncate text-gray-900 dark:text-white group-hover:text-blue-600">{ed.title}</h4>
