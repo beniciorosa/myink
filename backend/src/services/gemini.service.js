@@ -50,6 +50,13 @@ const getOpenLibraryData = async (isbn) => {
   }
 };
 
+const BR_PUBLISHERS = [
+  'Companhia das Letras', 'Record', 'Sextante', 'Intrínseca', 'Rocco', 'Aleph', 'Excelsior', 'Globo', 'Panda',
+  'Darkside', 'Planeta', 'HarperCollins Brasil', 'Todavia', 'Arqueiro', 'HarperCollins', 'Objetiva',
+  'Suma', 'Buzz', 'Gutenberg', 'Autêntica', 'Vozes', 'Cortez', 'Atlas', 'Nova Fronteira', 'Zahar',
+  'L&PM', 'Antofágica', 'Principis', 'Ciranda Cultural', 'Melhoramentos', 'Ediouro', 'Thomas Nelson', 'Alta Books'
+];
+
 const classifySearchQuery = async (query) => {
   try {
     const model = genAI.getGenerativeModel({
@@ -60,23 +67,24 @@ const classifySearchQuery = async (query) => {
     Classifique em um destes tipos:
     1. "SEARCH": O usuário busca um livro específico pelo nome ou termos.
     2. "AUTHOR": O usuário busca obras de um autor específico.
-    3. "PUBLISHER": O usuário busca livros de uma editora específica (ex: "Livros da Intrínseca", "Editora Aleph").
+    3. "PUBLISHER": O usuário busca livros de uma editora específica (ex: "Livros da Intrínseca").
     4. "DISCOVERY": O usuário quer sugestões sobre um tema ou gênero.
     
     Retorne JSON:
     { "type": "SEARCH" | "AUTHOR" | "PUBLISHER" | "DISCOVERY", "value": "termo limpo" }`;
 
     const result = await model.generateContent(prompt);
-    return JSON.parse(sanitizeJson(result.response.text()));
+    const intent = JSON.parse(sanitizeJson(result.response.text()));
+    debugLog(`Classificação IA: ${JSON.stringify(intent)}`);
+    return intent;
   } catch (err) {
-    debugLog(`Erro classifySearchQuery: ${err.message} `);
-    return { type: "TITLE", value: query };
+    debugLog(`Erro classifySearchQuery: ${err.message}`);
+    return { type: "SEARCH", value: query };
   }
 };
 
 const searchBooks = async (query, filters = {}) => {
   try {
-    // Se temos filtros explícitos (busca avançada), pulamos a classificação
     let intent;
     if (filters.title || filters.author || filters.publisher) {
       intent = { type: 'COMPLEX', value: query };
@@ -86,132 +94,130 @@ const searchBooks = async (query, filters = {}) => {
 
     debugLog(`Intenção de busca: ${intent.type} para "${intent.value}"`);
 
-    let books = [];
     const key = process.env.GOOGLE_BOOKS_API_KEY;
+    let rawItems = [];
 
-    if (intent.type === "AUTHOR" || intent.type === "PUBLISHER" || intent.type === "COMPLEX") {
-      let q = '';
-      if (intent.type === "AUTHOR") q = `inauthor:${encodeURIComponent(intent.value)} `;
-      else if (intent.type === "PUBLISHER") q = `inpublisher:${encodeURIComponent(intent.value)} `;
-      else {
-        // Busca Complexa (Avançada)
+    if (intent.type !== "DISCOVERY") {
+      // Stage 1: Specific Intent Match
+      let q1 = '';
+      if (intent.type === "AUTHOR") q1 = `inauthor:${encodeURIComponent(intent.value)}`;
+      else if (intent.type === "PUBLISHER") q1 = `inpublisher:${encodeURIComponent(intent.value)}`;
+      else if (intent.type === "COMPLEX") {
         const parts = [];
-        if (filters.title) parts.push(`intitle:${encodeURIComponent(filters.title)} `);
-        if (filters.author) parts.push(`inauthor:${encodeURIComponent(filters.author)} `);
-        if (filters.publisher) parts.push(`inpublisher:${encodeURIComponent(filters.publisher)} `);
-        if (parts.length === 0) parts.push(encodeURIComponent(query));
-        q = parts.join('+');
+        if (filters.title) parts.push(`intitle:${encodeURIComponent(filters.title)}`);
+        if (filters.author) parts.push(`inauthor:${encodeURIComponent(filters.author)}`);
+        if (filters.publisher) parts.push(`inpublisher:${encodeURIComponent(filters.publisher)}`);
+        q1 = parts.join('+');
+      } else {
+        q1 = `intitle:${encodeURIComponent(intent.value)}`;
       }
 
-      // Adicionando um pequeno "boost" para o título se disponível
-      if (filters.title) {
-        q = `intitle:${encodeURIComponent(filters.title)} +${q} `;
-      }
+      const url1 = `https://www.googleapis.com/books/v1/volumes?q=${q1}&maxResults=40&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
+      debugLog(`Google Search S1: ${url1}`);
+      const res1 = await fetch(url1);
+      const data1 = await res1.json();
+      rawItems = data1.items || [];
 
-      const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=15&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
-      debugLog(`URL Busca Avançada: ${url}`);
-      const res = await fetch(url);
-      const data = await res.json();
-
-      books = (data.items || []).map(item => {
-        const cover = (
-          item.volumeInfo.imageLinks?.extraLarge ||
-          item.volumeInfo.imageLinks?.large ||
-          item.volumeInfo.imageLinks?.medium ||
-          item.volumeInfo.imageLinks?.small ||
-          item.volumeInfo.imageLinks?.thumbnail ||
-          item.volumeInfo.imageLinks?.smallThumbnail ||
-          null
-        )?.replace("http://", "https://");
-
-        return {
-          id: item.id,
-          title: item.volumeInfo.title,
-          author: item.volumeInfo.authors ? item.volumeInfo.authors[0] : 'Desconhecido',
-          coverUrl: cover,
-          publisher: item.volumeInfo.publisher || 'Desconhecida',
-          isbn: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null
-        };
-      });
-    } else if (intent.type === "DISCOVERY") {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", generationConfig: { responseMimeType: "application/json" } });
-      const prompt = `O usuário quer "${intent.value}". Sugira 8 livros famosos e importantes sobre esse tema (focando em edições brasileiras).
-      Retorne JSON:
-      { "suggestions": [ { "title": "Título", "author": "Autor" }, ... ] }`;
-      const result = await model.generateContent(prompt);
-      const suggestions = JSON.parse(sanitizeJson(result.response.text())).suggestions;
-
-      // Para cada sugestão, pegamos uma info básica rápida
-      books = await Promise.all(suggestions.map(async (s) => {
-        try {
-          const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(s.title)}+inauthor:${encodeURIComponent(s.author)}&maxResults=1${key ? `&key=${key}` : ''}`;
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.items?.[0]) {
-            const item = data.items[0];
-            const cover = (
-              item.volumeInfo.imageLinks?.extraLarge ||
-              item.volumeInfo.imageLinks?.large ||
-              item.volumeInfo.imageLinks?.medium ||
-              item.volumeInfo.imageLinks?.small ||
-              item.volumeInfo.imageLinks?.thumbnail ||
-              item.volumeInfo.imageLinks?.smallThumbnail ||
-              null
-            )?.replace("http://", "https://");
-
-            return {
-              id: item.id,
-              title: item.volumeInfo.title,
-              author: item.volumeInfo.authors ? item.volumeInfo.authors[0] : s.author,
-              coverUrl: cover,
-              isbn: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null
-            };
-          }
-          return { title: s.title, author: s.author, id: Math.random().toString(), coverUrl: null, isbn: null };
-        } catch (e) {
-          return { title: s.title, author: s.author, id: Math.random().toString(), coverUrl: null, isbn: null };
+      // Stage 2: Broad Fallback
+      if (rawItems.length < 15 && (intent.type === "SEARCH" || intent.type === "TITLE")) {
+        const q2 = encodeURIComponent(intent.value);
+        const url2 = `https://www.googleapis.com/books/v1/volumes?q=${q2}&maxResults=20&langRestrict=pt${key ? `&key=${key}` : ''}`;
+        const res2 = await fetch(url2);
+        const data2 = await res2.json();
+        if (data2.items) {
+          const seenIds = new Set(rawItems.map(it => it.id));
+          data2.items.forEach(it => { if (!seenIds.has(it.id)) rawItems.push(it); });
         }
-      }));
-    } else {
-      // Intent TÍTULO ou fallback: Agora sempre retorna MÚLTIPLOS resultados
-      // Usamos aspas duplas para forçar a busca exata dos termos no Google Books
-      const q = encodeURIComponent(`"${query}"`);
-      const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${q}&maxResults=40&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
-      debugLog(`URL Busca Geral Estrita: ${url}`);
-      const res = await fetch(url);
-      const data = await res.json();
+      }
 
       const searchTerms = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
 
-      books = (data.items || [])
-        .map(item => {
-          const cover = (
-            item.volumeInfo.imageLinks?.extraLarge ||
-            item.volumeInfo.imageLinks?.large ||
-            item.volumeInfo.imageLinks?.medium ||
-            item.volumeInfo.imageLinks?.small ||
-            item.volumeInfo.imageLinks?.thumbnail ||
-            item.volumeInfo.imageLinks?.smallThumbnail ||
-            null
-          )?.replace("http://", "https://");
+      let processed = rawItems.map(item => {
+        const info = item.volumeInfo;
+        const publisher = info.publisher || 'Desconhecida';
+        const title = info.title;
+        const language = info.language || 'unk';
+        const cover = (
+          info.imageLinks?.extraLarge ||
+          info.imageLinks?.large ||
+          info.imageLinks?.medium ||
+          info.imageLinks?.small ||
+          info.imageLinks?.thumbnail ||
+          info.imageLinks?.smallThumbnail ||
+          null
+        )?.replace("http://", "https://");
 
-          return {
-            id: item.id,
-            title: item.volumeInfo.title,
-            author: item.volumeInfo.authors ? item.volumeInfo.authors[0] : 'Desconhecido',
-            coverUrl: cover,
-            publisher: item.volumeInfo.publisher || 'Desconhecida',
-            isbn: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null
-          };
-        })
-        .filter(b => {
-          // Filtro adicional de segurança: o título deve conter os termos principais da busca
-          const titleLower = b.title.toLowerCase();
-          return searchTerms.every(term => titleLower.includes(term));
-        });
+        // Scoring logic
+        const lowerTitle = title.toLowerCase();
+        const lowerPub = publisher.toLowerCase();
+        let score = 0;
+
+        if (language === 'pt') score += 1000;
+        if (searchTerms.every(term => lowerTitle.includes(term))) score += 500;
+
+        const isBrPublisher = BR_PUBLISHERS.some(bp => lowerPub.includes(bp.toLowerCase()));
+        if (isBrPublisher) score += 300;
+
+        // Penalty for summaries/meta results
+        if (lowerTitle.includes('resumo') || lowerTitle.includes('guia de estudo') || lowerTitle.includes('summary')) {
+          score -= 400;
+        }
+
+        return {
+          id: item.id,
+          title,
+          author: info.authors ? info.authors[0] : 'Desconhecido',
+          coverUrl: cover,
+          publisher,
+          isbn: info.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null,
+          language,
+          score
+        };
+      })
+        .filter(b => b.score > 300 || b.language === 'pt')
+        .sort((a, b) => b.score - a.score);
+
+      // Deduplication
+      const finalBooks = [];
+      const signatures = new Set();
+      processed.forEach(b => {
+        const sig = `${b.title.toLowerCase().substring(0, 30)}|${b.author.toLowerCase()}`;
+        if (!signatures.has(sig)) {
+          signatures.add(sig);
+          finalBooks.push(b);
+        }
+      });
+      return finalBooks;
+    } else {
+      // DISCOVERY logic
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", generationConfig: { responseMimeType: "application/json" } });
+      const prompt = `O usuário quer "${intent.value}". Sugira 8 livros famosos e importantes sobre esse tema (focando em edições brasileiras).
+      Retorne JSON: { "suggestions": [ { "title": "Título", "author": "Autor" }, ... ] }`;
+      const result = await model.generateContent(prompt);
+      const suggestions = JSON.parse(sanitizeJson(result.response.text())).suggestions;
+
+      return await Promise.all(suggestions.map(async (s) => {
+        try {
+          const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(s.title)}+inauthor:${encodeURIComponent(s.author)}&maxResults=1&langRestrict=pt${key ? `&key=${key}` : ''}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.items?.[0]) {
+            const info = data.items[0].volumeInfo;
+            return {
+              id: data.items[0].id,
+              title: info.title,
+              author: info.authors ? info.authors[0] : s.author,
+              coverUrl: (info.imageLinks?.thumbnail || null)?.replace("http://", "https://"),
+              isbn: info.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null,
+              language: 'pt'
+            };
+          }
+          return { title: s.title, author: s.author, id: Math.random().toString(), coverUrl: null, isbn: null, language: 'pt' };
+        } catch (e) {
+          return { title: s.title, author: s.author, id: Math.random().toString(), coverUrl: null, isbn: null, language: 'pt' };
+        }
+      }));
     }
-
-    return books;
   } catch (err) {
     console.error("Erro searchBooks:", err);
     throw err;

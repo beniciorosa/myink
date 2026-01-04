@@ -815,7 +815,7 @@ const App: React.FC = () => {
                                             <button
                                                 onClick={() => data.aiSummary ? setIsSummaryExpanded(true) : handleDeepAnalysis()}
                                                 disabled={isAnalyzingDeeply}
-                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${isSummaryExpanded
+                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${isSummaryExpanded
                                                     ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
                                                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                                             >
@@ -971,7 +971,7 @@ const App: React.FC = () => {
                                     </div>
 
                                     <div className="flex-grow text-left flex flex-col">
-                                        <div className="bg-gray-50/50 dark:bg-gray-900/40 rounded-3xl p-6 md:p-8 border border-gray-100/50 dark:border-gray-800/50 shadow-inner">
+                                        <div className="bg-white dark:bg-gray-800/40 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
                                             <div className="prose dark:prose-invert max-w-none select-text">
                                                 <div className="text-[14px] md:text-[15px] text-gray-600 dark:text-gray-400 leading-[1.6] font-sans space-y-4">
                                                     {(() => {
