@@ -1573,56 +1573,262 @@ const App: React.FC = () => {
                         {state === AppState.SHELF && (
                             <motion.div
                                 key="shelf"
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.98 }}
-                                className="space-y-8"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="bg-background-light dark:bg-background-dark min-h-screen font-sans text-[#0d141b] dark:text-white"
                             >
-                                <div className="flex items-center justify-between mb-8">
-                                    <div>
-                                        <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">Minha Estante</h2>
-                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Gerencie seus livros e progressos</p>
-                                    </div>
-                                    <button className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-[18px]">add</span>
-                                        Novo Livro
-                                    </button>
-                                </div>
+                                <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+                                    <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e7edf3] bg-white px-10 py-3 dark:border-gray-800 dark:bg-[#111a22]">
+                                        <div className="flex items-center gap-8">
+                                            <div className="flex items-center gap-4 text-[#0d141b] dark:text-white">
+                                                <div className="size-8 text-primary">
+                                                    <svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"></path>
+                                                    </svg>
+                                                </div>
+                                                <h2 className="text-xl font-bold leading-tight tracking-[-0.015em]">MYINK</h2>
+                                            </div>
+                                            <label className="flex flex-col min-w-40 !h-10 max-w-64">
+                                                <div className="flex w-full flex-1 items-stretch rounded-lg h-full group focus-within:ring-2 focus-within:ring-primary/50">
+                                                    <div className="text-[#4c739a] flex border-none bg-[#e7edf3] dark:bg-gray-800 items-center justify-center pl-4 rounded-l-lg border-r-0">
+                                                        <span className="material-symbols-outlined text-[20px]">search</span>
+                                                    </div>
+                                                    <input className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141b] dark:text-white focus:outline-0 focus:ring-0 border-none bg-[#e7edf3] dark:bg-gray-800 focus:border-none h-full placeholder:text-[#4c739a] px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal" placeholder="Buscar livros..." type="text" />
+                                                </div>
+                                            </label>
+                                        </div>
+                                        <div className="flex flex-1 justify-end gap-8">
+                                            <div className="hidden md:flex items-center gap-9">
+                                                <a className="text-[#0d141b] dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Início</a>
+                                                <a className="text-[#0d141b] dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Explorar</a>
+                                                <a className="text-[#0d141b] dark:text-white text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Comunidade</a>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button className="hidden lg:flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600 transition-colors shadow-sm">
+                                                    <span className="truncate">Adicionar Livro</span>
+                                                </button>
+                                                <button className="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                                    <span className="material-symbols-outlined text-[20px]">notifications</span>
+                                                </button>
+                                                <button className="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 w-10 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                                    <span className="material-symbols-outlined text-[20px]">settings</span>
+                                                </button>
+                                                <div className="bg-center bg-no-repeat bg-cover rounded-full size-10 border border-gray-200 dark:border-gray-700 cursor-pointer" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBOXYHUNKrzC9AK5UxKRYKzg-dITRma9euz_IC6KkvWa6IZ9n7xFxInG4G8xY69PXn4hgeSgxxZznJ7JjZtvNeWdpUNHownhyNtWwr-cEbKJx5H3jIIh7kBwTchnl_wt8YHV9PlGhWK2xvrAA6GfbmHr4HbSd6nxhIxdT4uV3jSLG-fHobsDBWUoVG9oeY3gnAbnbS7HwPyRHgaR0zK4Iiry_v-PVFAK-zBDacEgRXTBO7R-RbMHBPJd_LUiUMvT9I9TIs36XzA5xoT")' }}></div>
+                                            </div>
+                                        </div>
+                                    </header>
+                                    <div className="flex flex-1 justify-center py-5 px-4 md:px-10 lg:px-40">
+                                        <div className="flex flex-col max-w-[1200px] flex-1 w-full gap-6">
+                                            <div className="flex flex-col gap-6">
+                                                <div className="flex flex-wrap justify-between items-end gap-4 p-4 bg-white dark:bg-[#111a22] rounded-xl shadow-sm border border-[#e7edf3] dark:border-gray-800">
+                                                    <div className="flex min-w-72 flex-col gap-2">
+                                                        <h1 className="text-[#0d141b] dark:text-white text-3xl font-semibold leading-tight tracking-[-0.033em]">Meus Livros</h1>
+                                                        <p className="text-[#4c739a] text-sm font-normal leading-normal">Gerencie sua biblioteca pessoal, acompanhe leituras e organize suas coleções.</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button className="flex items-center justify-center rounded-lg h-9 px-3 border border-[#cfdbe7] dark:border-gray-700 text-[#0d141b] dark:text-white text-sm font-medium gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                            <span className="material-symbols-outlined text-[18px]">filter_list</span>
+                                                            <span className="truncate">Filtrar</span>
+                                                        </button>
+                                                        <button className="flex items-center justify-center rounded-lg h-9 px-3 border border-[#cfdbe7] dark:border-gray-700 text-[#0d141b] dark:text-white text-sm font-medium gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                            <span className="material-symbols-outlined text-[18px]">sort</span>
+                                                            <span className="truncate">Ordenar</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-1">
+                                                    <div className="flex flex-col gap-1 rounded-xl bg-white dark:bg-[#111a22] border border-[#cfdbe7] dark:border-gray-800 p-4 shadow-sm">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="material-symbols-outlined text-primary text-[24px]">menu_book</span>
+                                                            <p className="text-[#4c739a] text-xs font-bold uppercase tracking-wider">Lendo</p>
+                                                        </div>
+                                                        <p className="text-[#0d141b] dark:text-white text-3xl font-bold leading-tight">3</p>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1 rounded-xl bg-white dark:bg-[#111a22] border border-[#cfdbe7] dark:border-gray-800 p-4 shadow-sm">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="material-symbols-outlined text-yellow-500 text-[24px]">bookmark</span>
+                                                            <p className="text-[#4c739a] text-xs font-bold uppercase tracking-wider">Quero Ler</p>
+                                                        </div>
+                                                        <p className="text-[#0d141b] dark:text-white text-3xl font-bold leading-tight">12</p>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1 rounded-xl bg-white dark:bg-[#111a22] border border-[#cfdbe7] dark:border-gray-800 p-4 shadow-sm">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="material-symbols-outlined text-green-500 text-[24px]">check_circle</span>
+                                                            <p className="text-[#4c739a] text-xs font-bold uppercase tracking-wider">Lidos (Ano)</p>
+                                                        </div>
+                                                        <p className="text-[#0d141b] dark:text-white text-3xl font-bold leading-tight">8</p>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1 rounded-xl bg-white dark:bg-[#111a22] border border-[#cfdbe7] dark:border-gray-800 p-4 shadow-sm">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="material-symbols-outlined text-purple-500 text-[24px]">rate_review</span>
+                                                            <p className="text-[#4c739a] text-xs font-bold uppercase tracking-wider">Resenhas</p>
+                                                        </div>
+                                                        <p className="text-[#0d141b] dark:text-white text-3xl font-bold leading-tight">5</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="sticky top-[73px] z-40 bg-background-light dark:bg-background-dark pt-2">
+                                                <div className="border-b border-[#cfdbe7] dark:border-gray-700 px-1 overflow-x-auto">
+                                                    <div className="flex gap-8 min-w-max">
+                                                        <a className="flex items-center justify-center border-b-[3px] border-b-primary text-[#0d141b] dark:text-white pb-3 pt-2 px-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-t transition-colors" href="#">
+                                                            <p className="text-sm font-bold leading-normal tracking-[0.015em]">Lendo Agora</p>
+                                                            <span className="ml-2 bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                                                        </a>
+                                                        <a className="flex items-center justify-center border-b-[3px] border-b-transparent text-[#4c739a] pb-3 pt-2 px-2 hover:text-primary hover:border-b-primary/30 transition-all" href="#">
+                                                            <p className="text-sm font-bold leading-normal tracking-[0.015em]">Quero Ler</p>
+                                                        </a>
+                                                        <a className="flex items-center justify-center border-b-[3px] border-b-transparent text-[#4c739a] pb-3 pt-2 px-2 hover:text-primary hover:border-b-primary/30 transition-all" href="#">
+                                                            <p className="text-sm font-bold leading-normal tracking-[0.015em]">Lidos</p>
+                                                        </a>
+                                                        <a className="flex items-center justify-center border-b-[3px] border-b-transparent text-[#4c739a] pb-3 pt-2 px-2 hover:text-primary hover:border-b-primary/30 transition-all" href="#">
+                                                            <p className="text-sm font-bold leading-normal tracking-[0.015em]">Abandonados</p>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-4 pb-10">
+                                                {/* Book Item: The Hobbit */}
+                                                <div
+                                                    className="group flex flex-col sm:flex-row items-stretch gap-4 rounded-xl bg-white dark:bg-[#111a22] p-4 shadow-sm border border-[#e7edf3] dark:border-gray-800 hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
+                                                    onClick={() => setState(AppState.NOTES)}
+                                                >
+                                                    <div className="w-full sm:w-[120px] shrink-0 bg-center bg-no-repeat bg-cover rounded-lg aspect-[2/3] shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIbjpIeJYGXR2y66KhsKFqgMCdmyk42kbLTEGXGV0eq1QZSvs2bjxx3F-O--TyYXN05zmb_0gzhBD5IkhzJXO2glmqx6QmnklVyFAIx2o3ieXNDtZfv6I9dINeTU8TRgwY9nybCw4ObBweEPNI0hj1hcQPoVlWX7l-bHhJ0WcXOg2qfyp0Qk4HahVaTpqR7qqs2LehWOHAUMo6dYI0YDxG-0lT_Qk3fNIPZ3rQ_iCfsBt_UaOTROvN5_if8mS6kYGxrRslWm9-iwOs")' }}></div>
+                                                    <div className="flex flex-1 flex-col justify-between gap-6 py-1">
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex justify-between items-start">
+                                                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2 py-1 rounded">Fantasia</span>
+                                                                <button className="text-[#4c739a] hover:text-primary p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                                                                    <span className="material-symbols-outlined text-[20px]">more_vert</span>
+                                                                </button>
+                                                            </div>
+                                                            <h3 className="text-[#0d141b] dark:text-white text-xl font-bold leading-tight mt-1">O Hobbit</h3>
+                                                            <p className="text-[#4c739a] text-sm font-medium">J.R.R. Tolkien</p>
+                                                            <div className="mt-4 max-w-md">
+                                                                <div className="flex justify-between text-xs font-semibold text-[#4c739a] mb-1">
+                                                                    <span>Progresso</span>
+                                                                    <span>45%</span>
+                                                                </div>
+                                                                <div className="h-2 w-full rounded-full bg-[#e7edf3] dark:bg-gray-700 overflow-hidden">
+                                                                    <div className="h-full rounded-full bg-primary" style={{ width: '45%' }}></div>
+                                                                </div>
+                                                                <p className="text-xs text-[#4c739a] mt-1">Página 135 de 300</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <button className="flex items-center justify-center rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold gap-2 hover:bg-blue-600 transition-colors shadow-sm">
+                                                                <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                                <span>Atualizar</span>
+                                                            </button>
+                                                            <button className="flex items-center justify-center rounded-lg h-9 px-4 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white text-sm font-medium gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                                                <span className="material-symbols-outlined text-[18px]">note_add</span>
+                                                                <span>Notas</span>
+                                                            </button>
+                                                            <button className="flex items-center justify-center rounded-lg h-9 w-9 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30 dark:hover:text-green-400 transition-colors" title="Marcar como lido">
+                                                                <span className="material-symbols-outlined text-[18px]">check</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-                                    {/* Mock Book Card - O Grande Gatsby */}
-                                    <div
-                                        onClick={() => setState(AppState.NOTES)}
-                                        className="group cursor-pointer flex flex-col gap-4"
-                                    >
-                                        <div className="aspect-[2/3] rounded-[24px] overflow-hidden relative shadow-md group-hover:shadow-xl transition-all group-hover:-translate-y-2">
-                                            <img
-                                                src={data?.coverUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuCI5te6m579eu45ys0snCH7fz7XVxa3vIdoFVs9wOaN8FoIb6B0LZl0phQXfCK-6-t8pPyxGDmoL9TlfTThmHVRqggCq4GYay_Da7zClu8JEVLPolpaI87NSsDiSBnV29kYe6peExaatYQquyCQnN5rY-A6Gao7o_0E1bL08PPKA1RNUOweVl3bGTsd19afUm9hwUngM0m5uSipPtc_Pq0s258xKG975XoJFBg_TXzpJUtRssEpEV7WoO5XiTVOAzddXD8Vx43LYUvS"}
-                                                alt="O Grande Gatsby"
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                                            <div className="absolute top-3 right-3 bg-white/90 dark:bg-black/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
-                                                45%
+                                                {/* Book Item: Dom Casmurro */}
+                                                <div
+                                                    className="group flex flex-col sm:flex-row items-stretch gap-4 rounded-xl bg-white dark:bg-[#111a22] p-4 shadow-sm border border-[#e7edf3] dark:border-gray-800 hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
+                                                    onClick={() => setState(AppState.NOTES)}
+                                                >
+                                                    <div className="w-full sm:w-[120px] shrink-0 bg-center bg-no-repeat bg-cover rounded-lg aspect-[2/3] shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuATcnA-T31DREBo18MzP8K5YpGIIo1hdJY-Vedr3VC6Jal4nyJ2aeWDm6ixTwf0KQLTO-7jPsnRS-gHCU3DhX51SQO5gG-MqmJd4yWB0romexp-dNoGmkxAnnrg0D4_Ftk4NUSsGeQJkSBhTuhfjKDJP7ZCcBCEWUnkaAdN-pKK7d7WsK7NZNveLjbkiWhUiFWRcUBlDkmnQaLt6EwizN1YaDmPSIFMttOuOv-8BVQdXCTeUuCGsPWTdR0vLWMUDsew8WOG8DbFSFqW")', width: '45%' }}></div>
+                                                    <div className="flex flex-1 flex-col justify-between gap-6 py-1">
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex justify-between items-start">
+                                                                <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-semibold px-2 py-1 rounded">Clássico Brasileiro</span>
+                                                                <button className="text-[#4c739a] hover:text-primary p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                                                                    <span className="material-symbols-outlined text-[20px]">more_vert</span>
+                                                                </button>
+                                                            </div>
+                                                            <h3 className="text-[#0d141b] dark:text-white text-xl font-bold leading-tight mt-1">Dom Casmurro</h3>
+                                                            <p className="text-[#4c739a] text-sm font-medium">Machado de Assis</p>
+                                                            <div className="mt-4 max-w-md">
+                                                                <div className="flex justify-between text-xs font-semibold text-[#4c739a] mb-1">
+                                                                    <span>Progresso</span>
+                                                                    <span>12%</span>
+                                                                </div>
+                                                                <div className="h-2 w-full rounded-full bg-[#e7edf3] dark:bg-gray-700 overflow-hidden">
+                                                                    <div className="h-full rounded-full bg-primary" style={{ width: '12%' }}></div>
+                                                                </div>
+                                                                <p className="text-xs text-[#4c739a] mt-1">Capítulo V</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <button className="flex items-center justify-center rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold gap-2 hover:bg-blue-600 transition-colors shadow-sm">
+                                                                <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                                <span>Atualizar</span>
+                                                            </button>
+                                                            <button className="flex items-center justify-center rounded-lg h-9 px-4 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white text-sm font-medium gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                                                <span className="material-symbols-outlined text-[18px]">note_add</span>
+                                                                <span>Notas</span>
+                                                            </button>
+                                                            <button className="flex items-center justify-center rounded-lg h-9 w-9 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30 dark:hover:text-green-400 transition-colors" title="Marcar como lido">
+                                                                <span className="material-symbols-outlined text-[18px]">check</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Book Item: Clean Code */}
+                                                <div
+                                                    className="group flex flex-col sm:flex-row items-stretch gap-4 rounded-xl bg-white dark:bg-[#111a22] p-4 shadow-sm border border-[#e7edf3] dark:border-gray-800 hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
+                                                    onClick={() => setState(AppState.NOTES)}
+                                                >
+                                                    <div className="w-full sm:w-[120px] shrink-0 bg-center bg-no-repeat bg-cover rounded-lg aspect-[2/3] shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXrgIHLozW9x8QPNIbqD3micjyca-1rQu36AiMxXohdXva3yUr8p9dvVN6LiPoe4QwOFk3Y16NR-41L3BDbdTGUg8pXX8DRzpIGhiE0crxkDuG5ogaac1HZ8MHIgYK9yDNQ6-kDG30xuBwbo_1NmFoEKmjIu4b_zPdwEgvmRVTd7szDJOMWK2oq1w4m-IRllgf6UAcIeVTdIet2EJYLK6fuTuSAKy2tMA0es2SD5wOS7Ju0uyyijaSFLSZxGdIvR8SKmXgVaMIEBIN")' }}></div>
+                                                    <div className="flex flex-1 flex-col justify-between gap-6 py-1">
+                                                        <div className="flex flex-col gap-1">
+                                                            <div className="flex justify-between items-start">
+                                                                <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold px-2 py-1 rounded">Técnico</span>
+                                                                <button className="text-[#4c739a] hover:text-primary p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                                                                    <span className="material-symbols-outlined text-[20px]">more_vert</span>
+                                                                </button>
+                                                            </div>
+                                                            <h3 className="text-[#0d141b] dark:text-white text-xl font-bold leading-tight mt-1">Clean Code</h3>
+                                                            <p className="text-[#4c739a] text-sm font-medium">Robert C. Martin</p>
+                                                            <div className="mt-4 max-w-md">
+                                                                <div className="flex justify-between text-xs font-semibold text-[#4c739a] mb-1">
+                                                                    <span>Progresso</span>
+                                                                    <span>85%</span>
+                                                                </div>
+                                                                <div className="h-2 w-full rounded-full bg-[#e7edf3] dark:bg-gray-700 overflow-hidden">
+                                                                    <div className="h-full rounded-full bg-primary" style={{ width: '85%' }}></div>
+                                                                </div>
+                                                                <p className="text-xs text-[#4c739a] mt-1">Capítulo 14 - Sucessive Refinement</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <button className="flex items-center justify-center rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold gap-2 hover:bg-blue-600 transition-colors shadow-sm">
+                                                                <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                                <span>Atualizar</span>
+                                                            </button>
+                                                            <button className="flex items-center justify-center rounded-lg h-9 px-4 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white text-sm font-medium gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                                                <span className="material-symbols-outlined text-[18px]">note_add</span>
+                                                                <span>Notas</span>
+                                                            </button>
+                                                            <button className="flex items-center justify-center rounded-lg h-9 w-9 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/30 dark:hover:text-green-400 transition-colors" title="Marcar como lido">
+                                                                <span className="material-symbols-outlined text-[18px]">check</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight mb-1 truncate uppercase tracking-tight">O Grande Gatsby</h3>
-                                            <p className="text-xs font-bold text-slate-400 dark:text-text-secondary uppercase tracking-wider truncate">F. Scott Fitzgerald</p>
+                                            <div className="flex flex-col items-center justify-center p-8 rounded-xl bg-gradient-to-br from-primary/5 to-transparent border border-dashed border-[#cfdbe7] dark:border-gray-800 text-center">
+                                                <div className="bg-white dark:bg-[#111a22] p-3 rounded-full shadow-sm mb-4">
+                                                    <span className="material-symbols-outlined text-primary text-[32px]">auto_stories</span>
+                                                </div>
+                                                <h3 className="text-[#0d141b] dark:text-white text-lg font-bold">Procurando sua próxima leitura?</h3>
+                                                <p className="text-[#4c739a] text-sm mt-2 max-w-md">Explore nossa comunidade e descubra livros recomendados baseados no seu gosto.</p>
+                                                <button className="mt-4 flex items-center justify-center rounded-lg h-10 px-6 border border-primary/30 text-primary font-bold text-sm hover:bg-primary hover:text-white transition-all">
+                                                    Explorar recomendações
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    {/* Placeholder Books for Visual Grid */}
-                                    {[1, 2, 3].map((i) => (
-                                        <div key={i} className="group cursor-pointer flex flex-col gap-4 opacity-50 hover:opacity-100 transition-opacity">
-                                            <div className="aspect-[2/3] rounded-[24px] bg-slate-100 dark:bg-surface-input/10 flex items-center justify-center relative border-2 border-dashed border-slate-200 dark:border-surface-input/20">
-                                                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-surface-input">book_2</span>
-                                            </div>
-                                            <div>
-                                                <div className="h-4 bg-slate-100 dark:bg-surface-input/20 rounded w-3/4 mb-2" />
-                                                <div className="h-3 bg-slate-100 dark:bg-surface-input/20 rounded w-1/2" />
-                                            </div>
-                                        </div>
-                                    ))}
                                 </div>
                             </motion.div>
                         )}
