@@ -26,6 +26,7 @@ export interface BookStudyData {
   publisher?: string;
   synopsis: string;
   aiSummary?: string;
+  language?: string;
   flashcards: Flashcard[];
   quiz: QuizQuestion[];
 }

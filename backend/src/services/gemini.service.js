@@ -54,8 +54,26 @@ const BR_PUBLISHERS = [
   'Companhia das Letras', 'Record', 'Sextante', 'Intrínseca', 'Rocco', 'Aleph', 'Excelsior', 'Globo', 'Panda',
   'Darkside', 'Planeta', 'HarperCollins Brasil', 'Todavia', 'Arqueiro', 'HarperCollins', 'Objetiva',
   'Suma', 'Buzz', 'Gutenberg', 'Autêntica', 'Vozes', 'Cortez', 'Atlas', 'Nova Fronteira', 'Zahar',
-  'L&PM', 'Antofágica', 'Principis', 'Ciranda Cultural', 'Melhoramentos', 'Ediouro', 'Thomas Nelson', 'Alta Books'
+  'L&PM', 'Antofágica', 'Principis', 'Ciranda Cultural', 'Melhoramentos', 'Ediouro', 'Thomas Nelson', 'Alta Books', 'Casa dos Livros'
 ];
+
+const LANGUAGE_MAP = {
+  'pt': 'Português',
+  'pt-BR': 'Português',
+  'en': 'Inglês',
+  'es': 'Espanhol',
+  'fr': 'Francês',
+  'de': 'Alemão',
+  'it': 'Italiano',
+  'ja': 'Japonês',
+  'zh': 'Chinês'
+};
+
+const resolveLanguageName = (code) => {
+  if (!code) return 'Desconhecido';
+  const clean = code.toLowerCase().split('-')[0];
+  return LANGUAGE_MAP[clean] || code;
+};
 
 const classifySearchQuery = async (query) => {
   try {
@@ -118,10 +136,11 @@ const searchBooks = async (query, filters = {}) => {
       const data1 = await res1.json();
       rawItems = data1.items || [];
 
-      // Stage 2: Broad Fallback
-      if (rawItems.length < 15 && (intent.type === "SEARCH" || intent.type === "TITLE")) {
+      // Stage 2: Broad Fallback (Ensure we catch popular editions)
+      if (rawItems.length < 25 || intent.type === "SEARCH") {
         const q2 = encodeURIComponent(intent.value);
-        const url2 = `https://www.googleapis.com/books/v1/volumes?q=${q2}&maxResults=20&langRestrict=pt${key ? `&key=${key}` : ''}`;
+        const url2 = `https://www.googleapis.com/books/v1/volumes?q=${q2}&maxResults=40&langRestrict=pt${key ? `&key=${key}` : ''}`;
+        debugLog(`Google Search S2: ${url2}`);
         const res2 = await fetch(url2);
         const data2 = await res2.json();
         if (data2.items) {
@@ -137,6 +156,8 @@ const searchBooks = async (query, filters = {}) => {
         const publisher = info.publisher || 'Desconhecida';
         const title = info.title;
         const language = info.language || 'unk';
+        const authors = info.authors || [];
+        const author = authors[0] || 'Desconhecido';
         const cover = (
           info.imageLinks?.extraLarge ||
           info.imageLinks?.large ||
@@ -150,23 +171,38 @@ const searchBooks = async (query, filters = {}) => {
         // Scoring logic
         const lowerTitle = title.toLowerCase();
         const lowerPub = publisher.toLowerCase();
+        const lowerAuthor = author.toLowerCase();
         let score = 0;
 
-        if (language === 'pt') score += 1000;
-        if (searchTerms.every(term => lowerTitle.includes(term))) score += 500;
+        // Base score for language (Very important)
+        if (language.startsWith('pt')) score += 1000;
 
+        // Exact term match bonus
+        const titleMatch = searchTerms.every(term => lowerTitle.includes(term));
+        if (titleMatch) score += 500;
+
+        // Author Boost (Clason, Orwell, etc in query or as metadata)
+        const authorMatch = searchTerms.some(term => lowerAuthor.includes(term));
+        if (authorMatch) score += 700;
+
+        // Publisher Bonus (Recognized BR houses + Casa dos Livros)
         const isBrPublisher = BR_PUBLISHERS.some(bp => lowerPub.includes(bp.toLowerCase()));
-        if (isBrPublisher) score += 300;
+        if (isBrPublisher) score += 800;
 
-        // Penalty for summaries/meta results
-        if (lowerTitle.includes('resumo') || lowerTitle.includes('guia de estudo') || lowerTitle.includes('summary')) {
-          score -= 400;
+        // COVER PENALTY - Massive to avoid broken covers at all costs
+        if (!cover || cover.includes('placehold.co')) {
+          score -= 1500;
+        }
+
+        // Secondary Work Demotion (Resumo, Estudo, etc.)
+        if (lowerTitle.includes('resumo') || lowerTitle.includes('estendido') || lowerTitle.includes('plano de ação') || lowerTitle.includes('workbook')) {
+          score -= 600;
         }
 
         return {
           id: item.id,
           title,
-          author: info.authors ? info.authors[0] : 'Desconhecido',
+          author,
           coverUrl: cover,
           publisher,
           isbn: info.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null,
@@ -174,19 +210,26 @@ const searchBooks = async (query, filters = {}) => {
           score
         };
       })
-        .filter(b => b.score > 300 || b.language === 'pt')
+        .filter(b => b.score > 400 || (b.language.startsWith('pt') && b.score > 0))
         .sort((a, b) => b.score - a.score);
 
-      // Deduplication
+      // Deduplication by prefix + author (More strict: first 20 chars)
       const finalBooks = [];
       const signatures = new Set();
       processed.forEach(b => {
-        const sig = `${b.title.toLowerCase().substring(0, 30)}|${b.author.toLowerCase()}`;
+        const sig = `${b.title.toLowerCase().substring(0, 20)}|${b.author.toLowerCase()}`;
         if (!signatures.has(sig)) {
           signatures.add(sig);
           finalBooks.push(b);
+        } else {
+          // Keep highest score
+          const existingIdx = finalBooks.findIndex(f => `${f.title.toLowerCase().substring(0, 20)}|${f.author.toLowerCase()}` === sig);
+          if (existingIdx !== -1 && b.score > finalBooks[existingIdx].score) {
+            finalBooks[existingIdx] = b;
+          }
         }
       });
+
       return finalBooks;
     } else {
       // DISCOVERY logic
@@ -379,6 +422,7 @@ const getBetterCover = async (title, author) => {
         pages: finalPages,
         isbn: isbnObj?.identifier || (isIsbn ? isbnClean : null),
         genre: finalGenre,
+        language: resolveLanguageName(info.language),
         publisher: resolvedFromBrasil?.publisher || info.publisher || null,
         synopsis: resolvedFromBrasil?.synopsis || info.description || null,
         resolvedTitle: resolvedFromBrasil?.resolvedTitle || info.title,
@@ -466,6 +510,7 @@ const fetchBookBasicInfo = async (bookTitle) => {
       genre: extraInfo.genre,
       coverUrl: extraInfo.coverUrl || `https://placehold.co/400x600/f8fafc/64748b?text=${encodeURIComponent(extraInfo.resolvedTitle || bookTitle)}`,
       synopsis: extraInfo.synopsis || null,
+      language: extraInfo.language || 'Desconhecido',
       originalTitle: null,
       publishDate: extraInfo.publishDate || null
     };
@@ -532,7 +577,7 @@ const generateDeepAnalysis = async (title, author, synopsis) => {
     const prompt = `Você é um crítico literário e bibliotecário especializado em análises profundas.
     Analise o livro "${title}" do autor "${author}".
     Baseie-se também nesta sinopse se necessário: "${synopsis}".
-
+ 
     Retorne UM ÚNICO OBJETO JSON com estas chaves:
     {
       "originalTitle": "título original (no idioma do autor)",
@@ -571,7 +616,7 @@ const fetchFlashcards = async (title, author, summary) => {
   1. QUANTIDADE: O campo "flashcards" DEVE ser uma lista com EXATAMENTE 8 (OITO) ITENS. Se você enviar menos de 8, o sistema falhará. 
   2. FORMATO: Responda APENAS com o JSON, sem markdown ou explicações.
   3. IDIOMA: Português Brasileiro.
-
+ 
   JSON SCHEMA:
   {
     "flashcards": [
@@ -641,7 +686,7 @@ const fetchQuiz = async (title, author, summary) => {
   1. QUANTIDADE: O campo "quiz" DEVE ser uma lista com EXATAMENTE 10 (DEZ) ITENS. Se você enviar menos de 10, o sistema falhará. 
   2. FORMATO: Responda APENAS com o JSON, sem markdown ou explicações.
   3. IDIOMA: Português Brasileiro.
-
+ 
   JSON SCHEMA:
   {
     "quiz": [
@@ -810,7 +855,7 @@ const fetchOtherEditions = async (title, author) => {
     // Ordenar por ano (descendente)
     return editions.sort((a, b) => {
       const yearA = a.year === 'N/A' ? 0 : parseInt(a.year);
-      const yearB = b.year === 'N/A' ? 0 : parseInt(b.year);
+      const yearB = b.year === 'N/A' ? 0 : parseInt(yearB);
       return yearB - yearA;
     }).slice(0, 10);
 
@@ -881,6 +926,8 @@ const searchBookCover = async (title, author, isbn = null, publisher = null) => 
               coverUrl: cover,
               publisher: info.publisher || null,
               pages: info.pageCount || null,
+              language: resolveLanguageName(info.language),
+              genre: info.categories ? info.categories[0] : null,
               publishDate: info.publishedDate || null,
               isbn: foundIsbn || isbn
             };

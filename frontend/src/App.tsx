@@ -6,7 +6,7 @@ import { FlashcardItem } from './components/FlashcardItem';
 import { Quiz } from './components/Quiz';
 import Logo from './components/Logo';
 import { BarcodeScanner } from './components/BarcodeScanner';
-import { Camera, Search, ChevronRight, Moon, Sun, RefreshCcw, Layout, HelpCircle, Trophy, Heart, User, Calendar, Hash, BookOpen, Building2, Trash2, List, Pencil } from 'lucide-react';
+import { Camera, Search, ChevronRight, Moon, Sun, RefreshCcw, Layout, HelpCircle, Trophy, Heart, User, Calendar, Hash, BookOpen, Building2, Trash2, List, Pencil, Languages, Tag } from 'lucide-react';
 
 // Last Updated: 2026-01-03 23:25 (THEME FIX V3.0)
 const App: React.FC = () => {
@@ -20,6 +20,7 @@ const App: React.FC = () => {
     const [quizScore, setQuizScore] = useState<number | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isAnalyzingDeeply, setIsAnalyzingDeeply] = useState(false);
+    const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [sidebarView, setSidebarView] = useState<'info' | 'editions'>('info');
     const [editions, setEditions] = useState<any[]>([]);
@@ -877,30 +878,48 @@ const App: React.FC = () => {
 
                                         <div className="space-y-4 w-full pr-4 mt-6">
                                             {sidebarView === 'info' ? (
-                                                <div className="space-y-2 mt-2">
+                                                <div className="space-y-3 mt-4">
                                                     {[
-                                                        { label: 'Autor', value: data.author, icon: User },
-                                                        { label: 'Ano', value: data.publishDate || (data as any).year || null, icon: Calendar },
-                                                        { label: 'Editora', value: data.publisher, icon: Building2 },
-                                                        { label: 'Páginas', value: data.pages, icon: BookOpen },
-                                                        { label: 'ISBN', value: data.isbn, icon: Hash }
-                                                    ].map((item, idx) => item.value ? (
-                                                        <div key={idx} className="flex flex-col gap-1 text-left group">
-                                                            <div className="flex items-center gap-1.5 opacity-50 group-hover:opacity-100 transition-all">
-                                                                <item.icon size={12} className="text-gray-400 dark:text-gray-500" />
-                                                                <span className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
-                                                                    {item.label}
-                                                                </span>
+                                                        { label: 'Autor', value: data.author, icon: User, key: 'author' },
+                                                        { label: 'Ano', value: data.publishDate, icon: Calendar, key: 'publishDate' },
+                                                        { label: 'Editora', value: data.publisher, icon: Building2, key: 'publisher' },
+                                                        { label: 'Páginas', value: data.pages, icon: BookOpen, key: 'pages' },
+                                                        { label: 'ISBN', value: data.isbn, icon: Hash, key: 'isbn' },
+                                                        { label: 'Idioma', value: data.language, icon: Languages, key: 'language' },
+                                                        { label: 'Gênero', value: data.genre, icon: Tag, key: 'genre' }
+                                                    ].map((item, idx) => (
+                                                        <div key={idx} className="flex flex-col gap-1 text-left group relative">
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-all">
+                                                                    <item.icon size={11} className="text-gray-400 dark:text-gray-500" />
+                                                                    <span className="text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
+                                                                        {item.label}
+                                                                    </span>
+                                                                </div>
+
+                                                                {(!item.value || item.value === 'Desconhecido' || item.value === 'N/A') && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (isRefreshingMetadata) return;
+                                                                            setIsRefreshingMetadata(true);
+                                                                            handleForceCoverFetch().finally(() => setIsRefreshingMetadata(false));
+                                                                        }}
+                                                                        className="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                                                                        title={`Tentar carregar ${item.label}`}
+                                                                    >
+                                                                        <RefreshCcw size={10} className={isRefreshingMetadata ? 'animate-spin' : ''} />
+                                                                    </button>
+                                                                )}
                                                             </div>
-                                                            <span className="text-xs font-bold text-gray-800 dark:text-gray-200 pl-0 leading-tight break-words">
-                                                                {item.value}
+                                                            <span className={`text-[11px] font-bold leading-tight break-words ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic font-medium' : 'text-gray-800 dark:text-gray-100'}`}>
+                                                                {item.value || 'Não informado'}
                                                             </span>
                                                         </div>
-                                                    ) : null)}
+                                                    ))}
 
                                                     <button
                                                         onClick={handleFetchEditions}
-                                                        className="w-full mt-2 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-blue-500 transition-all flex items-center justify-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-4"
+                                                        className="w-full mt-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-blue-500 transition-all flex items-center justify-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-6"
                                                     >
                                                         <Search size={12} />
                                                         Outras edições
