@@ -797,7 +797,7 @@ const App: React.FC = () => {
             </aside>
 
             {/* MAIN CONTENT AREA */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light">
+            <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light dark:bg-background-dark">
                 {/* DYNAMIC HEADER - Hidden in NOTES view as it has its own header */}
                 {state !== AppState.NOTES && (
                     <header className="bg-white/80 dark:bg-[#151f2b]/80 backdrop-blur-md sticky top-0 z-10 px-8 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-6">
@@ -836,7 +836,7 @@ const App: React.FC = () => {
                     </header>
                 )}
 
-                <div className={`flex-grow overflow-y-auto ${state === AppState.NOTES ? '' : 'pt-4 pb-20 px-6'} container mx-auto custom-scrollbar relative z-10 ${state === AppState.NOTES ? 'px-0 pb-0 h-full max-w-full' : ''}`}>
+                <div className={`flex-grow overflow-y-auto custom-scrollbar relative z-10 ${[AppState.NOTES, AppState.SHELF, AppState.SEARCH_RESULTS].includes(state) ? 'px-0 pb-0 h-full max-w-full' : 'pt-4 pb-20 px-6 container mx-auto'}`}>
                     <AnimatePresence mode="wait">
                         {state === AppState.IDLE && (
                             <motion.div
@@ -981,7 +981,7 @@ const App: React.FC = () => {
                                 className="font-display text-slate-900 dark:text-white"
                             >
                                 <div className="layout-container flex grow flex-col">
-                                    <div className="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
+                                    <div className="px-4 md:px-10 lg:px-12 flex flex-1 justify-center py-5">
                                         <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
                                             <div className="mb-8 pt-4 pb-6 text-center">
                                                 <h1 className="text-slate-900 dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.02em]">
@@ -1491,7 +1491,7 @@ const App: React.FC = () => {
                                 exit={{ opacity: 0 }}
                                 className="font-sans text-[#0d141b] dark:text-white"
                             >
-                                <div className="flex flex-1 justify-center py-5 px-4 md:px-10 lg:px-40">
+                                <div className="flex flex-1 justify-center py-5 px-4 md:px-10 lg:px-12">
                                     <div className="flex flex-col max-w-[1200px] flex-1 w-full gap-6">
                                         <div className="flex flex-col gap-6">
                                             <div className="flex flex-wrap justify-between items-end gap-4 p-4 bg-white dark:bg-[#111a22] rounded-xl shadow-sm border border-[#e7edf3] dark:border-gray-800">
