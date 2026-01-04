@@ -608,29 +608,33 @@ const App: React.FC = () => {
         <div className="min-h-screen flex flex-col font-sans transition-colors duration-200 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
             {/* Header */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
-                <div className="container mx-auto px-6 h-20 flex items-center relative">
-                    <div className="flex items-center gap-8">
+                <div className="container mx-auto px-6 h-20 grid grid-cols-[1fr_auto_1fr] items-center">
+                    {/* Col 1: Logo */}
+                    <div className="flex items-center">
                         <div className="cursor-pointer hover:opacity-80 transition-opacity" onClick={reset}>
                             <Logo />
                         </div>
                     </div>
 
-                    {/* Global Header Search Centered */}
-                    <form
-                        onSubmit={handleSearch}
-                        className="hidden lg:flex items-center absolute left-1/2 -translate-x-1/2 w-full max-w-[400px] relative group"
-                    >
-                        <Search className="absolute left-3 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={16} />
-                        <input
-                            type="text"
-                            value={headerSearchInput}
-                            onChange={(e) => setHeaderSearchInput(e.target.value)}
-                            placeholder="Nova pesquisa..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                        />
-                    </form>
+                    {/* Col 2: Search Bar */}
+                    <div className="flex justify-center">
+                        <form
+                            onSubmit={handleSearch}
+                            className="hidden lg:flex items-center w-full max-w-[360px] relative group"
+                        >
+                            <Search className="absolute left-3 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <input
+                                type="text"
+                                value={headerSearchInput}
+                                onChange={(e) => setHeaderSearchInput(e.target.value)}
+                                placeholder="Nova pesquisa..."
+                                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-sans"
+                            />
+                        </form>
+                    </div>
 
-                    <div className="flex items-center gap-4 ml-auto">
+                    {/* Col 3: Nav/User */}
+                    <div className="flex items-center gap-4 justify-end">
                         {data && (
                             <nav className="hidden md:flex items-center space-x-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                                 {[

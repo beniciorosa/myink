@@ -247,6 +247,11 @@ const searchBooks = async (query, filters = {}) => {
         // Base score for language (Very important)
         if (language.startsWith('pt')) score += 1000;
 
+        // ISBN Boost (Highest Priority): Pre-construed ISBN results from BrasilAPI/OL
+        if (item.id.startsWith('isbn-')) {
+          score += 10000;
+        }
+
         // Exact term match bonus
         const titleMatch = searchTerms.length > 0 && searchTerms.every(term => lowerTitle.includes(term));
         if (titleMatch) score += 500;
