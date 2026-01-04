@@ -1259,34 +1259,32 @@ const App: React.FC = () => {
                                     </div>
 
                                     <div className="flex-grow text-left flex flex-col h-full self-stretch">
-                                        <div className={`relative bg-white dark:bg-gray-800/40 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-500 overflow-hidden ${isReadMore ? 'h-auto' : 'h-72'} ${state === AppState.SUMMARY ? 'ring-1 ring-blue-50 shadow-blue-900/5' : ''}`}>
-                                            <div className="p-7 md:p-10" ref={synopsisRef}>
-                                                <div className="prose dark:prose-invert max-w-none select-text">
-                                                    <div className="text-[15px] md:text-[16px] text-gray-600 dark:text-gray-300 tracking-tight leading-[1.7] font-sans space-y-5">
-                                                        {(() => {
-                                                            const text = (isSummaryExpanded ? data.aiSummary : data.synopsis || "").replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
-                                                            let paras = text.split('\n\n').filter(p => p.trim());
-                                                            if (paras.length === 1) paras = text.split('\n').filter(p => p.trim());
-                                                            if (paras.length === 1 && text.length > 200) {
-                                                                paras = text.split(/(?<=\.)(?=\s+[A-Z])/).filter(p => p.trim());
-                                                                if (paras.length > 4) {
-                                                                    const groups = [];
-                                                                    for (let i = 0; i < paras.length; i += 2) groups.push(paras.slice(i, i + 2).join(' '));
-                                                                    paras = groups;
-                                                                }
+                                        <div className={`relative bg-white dark:bg-gray-800/40 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-500 overflow-hidden ${isReadMore ? 'h-auto' : 'h-60'} ${state === AppState.SUMMARY ? 'ring-1 ring-blue-50 shadow-blue-900/5' : ''}`}>
+                                            <div className="p-5 md:p-6" ref={synopsisRef}>
+                                                <div className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-sans space-y-4">
+                                                    {(() => {
+                                                        const text = (isSummaryExpanded ? data.aiSummary : data.synopsis || "").replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
+                                                        let paras = text.split('\n\n').filter(p => p.trim());
+                                                        if (paras.length === 1) paras = text.split('\n').filter(p => p.trim());
+                                                        if (paras.length === 1 && text.length > 200) {
+                                                            paras = text.split(/(?<=\.)(?=\s+[A-Z])/).filter(p => p.trim());
+                                                            if (paras.length > 4) {
+                                                                const groups = [];
+                                                                for (let i = 0; i < paras.length; i += 2) groups.push(paras.slice(i, i + 2).join(' '));
+                                                                paras = groups;
                                                             }
-                                                            return paras.map((para, i) => <p key={i}>{para}</p>);
-                                                        })()}
-                                                    </div>
+                                                        }
+                                                        return paras.map((para, i) => <p key={i}>{para}</p>);
+                                                    })()}
                                                 </div>
                                             </div>
 
                                             {/* Read More Gradient Overlay - Only show if hasOverflow */}
                                             {!isReadMore && hasOverflow && (
-                                                <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white dark:from-gray-800 via-white/80 dark:via-gray-800/80 to-transparent flex items-end justify-center pb-6">
+                                                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white dark:from-gray-900 via-white/90 dark:via-gray-900/90 to-transparent flex items-end justify-center pb-4">
                                                     <button
                                                         onClick={() => setIsReadMore(true)}
-                                                        className="flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border border-blue-100 dark:border-blue-900/30 hover:bg-blue-50 dark:hover:bg-gray-600 transform hover:scale-105 transition-all group"
+                                                        className="flex items-center gap-2 px-5 py-2 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border border-blue-50 dark:border-blue-900/30 hover:bg-blue-50 dark:hover:bg-gray-700 transform hover:scale-105 transition-all group"
                                                     >
                                                         <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
                                                         Leia mais
@@ -1294,8 +1292,8 @@ const App: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            {isReadMore && hasOverflow && (
-                                                <div className="flex justify-center pb-8 pt-4">
+                                            {isReadMore && (
+                                                <div className="flex justify-center pb-6 pt-2">
                                                     <button
                                                         onClick={() => setIsReadMore(false)}
                                                         className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors group"
