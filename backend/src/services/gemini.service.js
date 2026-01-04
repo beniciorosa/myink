@@ -139,7 +139,7 @@ const searchBooks = async (query, filters = {}) => {
       // Stage 2: Broad Fallback (Ensure we catch popular editions)
       if (rawItems.length < 25 || intent.type === "SEARCH") {
         const q2 = encodeURIComponent(intent.value);
-        const url2 = `https://www.googleapis.com/books/v1/volumes?q=${q2}&maxResults=40&langRestrict=pt${key ? `&key=${key}` : ''}`;
+        const url2 = `https://www.googleapis.com/books/v1/volumes?q=${q2}&maxResults=40&langRestrict=pt&orderBy=relevance${key ? `&key=${key}` : ''}`;
         debugLog(`Google Search S2: ${url2}`);
         const res2 = await fetch(url2);
         const data2 = await res2.json();
@@ -178,7 +178,7 @@ const searchBooks = async (query, filters = {}) => {
         if (language.startsWith('pt')) score += 1000;
 
         // Exact term match bonus
-        const titleMatch = searchTerms.every(term => lowerTitle.includes(term));
+        const titleMatch = searchTerms.length > 0 && searchTerms.every(term => lowerTitle.includes(term));
         if (titleMatch) score += 500;
 
         // Author Boost (Clason, Orwell, etc in query or as metadata)

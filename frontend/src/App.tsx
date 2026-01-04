@@ -6,7 +6,7 @@ import { FlashcardItem } from './components/FlashcardItem';
 import { Quiz } from './components/Quiz';
 import Logo from './components/Logo';
 import { BarcodeScanner } from './components/BarcodeScanner';
-import { Camera, Search, ChevronRight, Moon, Sun, RefreshCcw, Layout, HelpCircle, Trophy, Heart, User, Calendar, Hash, BookOpen, Building2, Trash2, List, Pencil, Languages, Tag } from 'lucide-react';
+import { Camera, Search, ChevronRight, Moon, Sun, RefreshCcw, Layout, HelpCircle, Trophy, Heart, User, Calendar, Hash, BookOpen, Building2, Trash2, List, Pencil, Languages, Tag, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Last Updated: 2026-01-03 23:25 (THEME FIX V3.0)
 const App: React.FC = () => {
@@ -28,6 +28,7 @@ const App: React.FC = () => {
     const [searchViewMode, setSearchViewMode] = useState<'grid' | 'list'>('grid');
     const [prevState, setPrevState] = useState<AppState | null>(null);
     const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
+    const [isReadMore, setIsReadMore] = useState(false);
     const [searchFilters, setSearchFilters] = useState({ title: '', author: '', publisher: '' });
     const [editionsPage, setEditionsPage] = useState(0);
     const [isFetchingEditions, setIsFetchingEditions] = useState(false);
@@ -808,7 +809,7 @@ const App: React.FC = () => {
                                         </div>
                                         <div className="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
                                             <button
-                                                onClick={() => setIsSummaryExpanded(false)}
+                                                onClick={() => { setIsSummaryExpanded(false); setIsReadMore(false); }}
                                                 className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!isSummaryExpanded
                                                     ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
                                                     : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
@@ -816,7 +817,7 @@ const App: React.FC = () => {
                                                 Sinopse
                                             </button>
                                             <button
-                                                onClick={() => data.aiSummary ? setIsSummaryExpanded(true) : handleDeepAnalysis()}
+                                                onClick={() => { data.aiSummary ? setIsSummaryExpanded(true) : handleDeepAnalysis(); setIsReadMore(false); }}
                                                 disabled={isAnalyzingDeeply}
                                                 className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap ${isSummaryExpanded
                                                     ? 'bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400'
@@ -826,6 +827,31 @@ const App: React.FC = () => {
                                                 {!data.aiSummary && !isAnalyzingDeeply && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
                                             </button>
                                         </div>
+                                    </div>
+
+                                    {/* Amazon-Style Horizontal Metadata Bar */}
+                                    <div className="mt-6 flex flex-wrap items-center justify-between gap-y-4 gap-x-8 px-2">
+                                        {[
+                                            { label: 'Autor', value: data.author, icon: User },
+                                            { label: 'Ano', value: data.publishDate, icon: Calendar },
+                                            { label: 'Editora', value: data.publisher, icon: Building2 },
+                                            { label: 'Páginas', value: data.pages, icon: BookOpen },
+                                            { label: 'Idioma', value: data.language, icon: Languages },
+                                            { label: 'Gênero', value: data.genre, icon: Tag },
+                                            { label: 'ISBN', value: data.isbn, icon: Hash }
+                                        ].map((item, idx) => (
+                                            <div key={idx} className="flex flex-col items-center gap-2 min-w-[80px]">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                                    {item.label}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <item.icon size={16} className="text-blue-500" />
+                                                    <span className={`text-sm font-bold ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-800 dark:text-gray-100'}`}>
+                                                        {item.value || 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
@@ -878,56 +904,8 @@ const App: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div className="space-y-4 w-full pr-4 mt-6">
-                                            {sidebarView === 'info' ? (
-                                                <div className="space-y-3 mt-4">
-                                                    {[
-                                                        { label: 'Autor', value: data.author, icon: User, key: 'author' },
-                                                        { label: 'Ano', value: data.publishDate, icon: Calendar, key: 'publishDate' },
-                                                        { label: 'Editora', value: data.publisher, icon: Building2, key: 'publisher' },
-                                                        { label: 'Páginas', value: data.pages, icon: BookOpen, key: 'pages' },
-                                                        { label: 'ISBN', value: data.isbn, icon: Hash, key: 'isbn' },
-                                                        { label: 'Idioma', value: data.language, icon: Languages, key: 'language' },
-                                                        { label: 'Gênero', value: data.genre, icon: Tag, key: 'genre' }
-                                                    ].map((item, idx) => (
-                                                        <div key={idx} className="flex flex-col gap-1 text-left group relative">
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-all">
-                                                                    <item.icon size={11} className="text-gray-400 dark:text-gray-500" />
-                                                                    <span className="text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none">
-                                                                        {item.label}
-                                                                    </span>
-                                                                </div>
-
-                                                                {(!item.value || item.value === 'Desconhecido' || item.value === 'N/A') && (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (isRefreshingMetadata) return;
-                                                                            setIsRefreshingMetadata(true);
-                                                                            handleForceCoverFetch().finally(() => setIsRefreshingMetadata(false));
-                                                                        }}
-                                                                        className="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-all opacity-0 group-hover:opacity-100"
-                                                                        title={`Tentar carregar ${item.label}`}
-                                                                    >
-                                                                        <RefreshCcw size={10} className={isRefreshingMetadata ? 'animate-spin' : ''} />
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                            <span className={`text-[11px] font-bold leading-tight break-words ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic font-medium' : 'text-gray-800 dark:text-gray-100'}`}>
-                                                                {item.value || 'Não informado'}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-
-                                                    <button
-                                                        onClick={handleFetchEditions}
-                                                        className="w-full mt-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-blue-500 transition-all flex items-center justify-center gap-2 border-t border-gray-100 dark:border-gray-700 pt-6"
-                                                    >
-                                                        <Search size={12} />
-                                                        Outras edições
-                                                    </button>
-                                                </div>
-                                            ) : (
+                                        <div className="space-y-4 w-full mt-6">
+                                            {sidebarView === 'editions' && (
                                                 <div className="flex flex-col gap-4">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Edições PT-BR</span>
@@ -988,29 +966,66 @@ const App: React.FC = () => {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {sidebarView === 'info' && (
+                                                <button
+                                                    onClick={handleFetchEditions}
+                                                    className="w-full mt-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 bg-blue-50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-xl transition-all flex items-center justify-center gap-2 border border-blue-100 dark:border-blue-900/30"
+                                                >
+                                                    <Search size={14} />
+                                                    Outras edições
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
-                                    <div className="flex-grow text-left flex flex-col">
-                                        <div className="bg-white dark:bg-gray-800/40 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
-                                            <div className="prose dark:prose-invert max-w-none select-text">
-                                                <div className="text-[14px] md:text-[15px] text-gray-600 dark:text-gray-400 leading-[1.6] font-sans space-y-4">
-                                                    {(() => {
-                                                        const text = (isSummaryExpanded ? data.aiSummary : data.synopsis || "").replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
-                                                        let paras = text.split('\n\n').filter(p => p.trim());
-                                                        if (paras.length === 1) paras = text.split('\n').filter(p => p.trim());
-                                                        if (paras.length === 1 && text.length > 200) {
-                                                            paras = text.split(/(?<=\.)(?=\s+[A-Z])/).filter(p => p.trim());
-                                                            if (paras.length > 4) {
-                                                                const groups = [];
-                                                                for (let i = 0; i < paras.length; i += 2) groups.push(paras.slice(i, i + 2).join(' '));
-                                                                paras = groups;
+                                    <div className="flex-grow text-left flex flex-col h-full self-stretch">
+                                        <div className={`relative bg-white dark:bg-gray-800/40 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-500 overflow-hidden ${isReadMore ? 'h-auto' : 'h-72'}`}>
+                                            <div className="p-6 md:p-8">
+                                                <div className="prose dark:prose-invert max-w-none select-text">
+                                                    <div className="text-[14px] md:text-[15px] text-gray-600 dark:text-gray-400 leading-[1.6] font-sans space-y-4">
+                                                        {(() => {
+                                                            const text = (isSummaryExpanded ? data.aiSummary : data.synopsis || "").replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
+                                                            let paras = text.split('\n\n').filter(p => p.trim());
+                                                            if (paras.length === 1) paras = text.split('\n').filter(p => p.trim());
+                                                            if (paras.length === 1 && text.length > 200) {
+                                                                paras = text.split(/(?<=\.)(?=\s+[A-Z])/).filter(p => p.trim());
+                                                                if (paras.length > 4) {
+                                                                    const groups = [];
+                                                                    for (let i = 0; i < paras.length; i += 2) groups.push(paras.slice(i, i + 2).join(' '));
+                                                                    paras = groups;
+                                                                }
                                                             }
-                                                        }
-                                                        return paras.map((para, i) => <p key={i}>{para}</p>);
-                                                    })()}
+                                                            return paras.map((para, i) => <p key={i}>{para}</p>);
+                                                        })()}
+                                                    </div>
                                                 </div>
                                             </div>
+
+                                            {/* Read More Gradient Overlay */}
+                                            {!isReadMore && (
+                                                <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white dark:from-gray-800 via-white/80 dark:via-gray-800/80 to-transparent flex items-end justify-center pb-6">
+                                                    <button
+                                                        onClick={() => setIsReadMore(true)}
+                                                        className="flex items-center gap-2 px-6 py-2.5 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border border-blue-100 dark:border-blue-900/30 hover:bg-blue-50 dark:hover:bg-gray-600 transform hover:scale-105 transition-all group"
+                                                    >
+                                                        <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
+                                                        Leia mais
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {isReadMore && (
+                                                <div className="flex justify-center pb-8 pt-4">
+                                                    <button
+                                                        onClick={() => setIsReadMore(false)}
+                                                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 transition-colors group"
+                                                    >
+                                                        <ChevronUp size={14} className="group-hover:-translate-y-0.5 transition-transform" />
+                                                        Recolher
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="mt-8 grid grid-cols-2 gap-4">
