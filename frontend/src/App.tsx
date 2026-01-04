@@ -1099,56 +1099,82 @@ const App: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Amazon-Style Horizontal Metadata Bar - Refined per User Feedback */}
-                                    <div className="mt-8 flex flex-col gap-4 px-4 bg-gray-50/50 dark:bg-gray-800/20 py-5 rounded-2xl border border-gray-100 dark:border-gray-700/50">
-                                        {/* Row 1: 4 items */}
-                                        <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-6">
-                                            {[
-                                                { label: 'Autor', value: data.author, icon: User },
-                                                { label: 'Ano', value: data.publishDate, icon: Calendar },
-                                                { label: 'Páginas', value: data.pages, icon: BookOpen },
-                                                { label: 'Idioma', value: data.language, icon: Languages }
-                                            ].map((item, idx) => (
-                                                <div key={idx} className="flex items-center gap-2.5 group/meta min-w-[120px]">
-                                                    <div className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
-                                                        <item.icon size={18} className="text-blue-500" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 leading-none mb-0.5">
-                                                            {item.label}
-                                                        </span>
-                                                        <span className={`text-[12px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
-                                                            {item.value || 'N/A'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                    {/* Bento Grid Metadata - Premium Redesign */}
+                                    <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {/* Author Card - Hero Card */}
+                                        <div className="col-span-2 p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl border border-blue-100/50 dark:border-blue-800/20 relative overflow-hidden group flex flex-col justify-center">
+                                            <div className="absolute -top-4 -right-4 opacity-5 transform group-hover:scale-110 transition-transform duration-500">
+                                                <User size={120} className="text-blue-600" />
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 dark:text-blue-400 mb-2 block">Autor Principal</span>
+                                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight tracking-tight">{data.author}</h3>
                                         </div>
 
-                                        {/* Divider */}
-                                        <div className="h-px bg-gray-100 dark:bg-gray-700/50 w-full" />
+                                        {/* Year Card */}
+                                        <div className="p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 flex flex-col justify-between hover:shadow-md transition-shadow">
+                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-gray-900 flex items-center justify-center mb-6">
+                                                <Calendar size={22} className="text-blue-500" />
+                                            </div>
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-1">Ano</span>
+                                                <span className="text-xl font-bold text-gray-900 dark:text-white">{data.publishDate || 'N/A'}</span>
+                                            </div>
+                                        </div>
 
-                                        {/* Row 2: 3 items */}
-                                        <div className="flex flex-wrap items-center justify-start gap-y-4 gap-x-16">
-                                            {[
-                                                { label: 'Gênero', value: data.genre, icon: Tag },
-                                                { label: 'Editora', value: data.publisher, icon: Building2 },
-                                                { label: 'ISBN', value: data.isbn, icon: Hash }
-                                            ].map((item, idx) => (
-                                                <div key={idx} className="flex items-center gap-2.5 group/meta min-w-[140px]">
-                                                    <div className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
-                                                        <item.icon size={18} className="text-blue-500" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 leading-none mb-0.5">
-                                                            {item.label}
-                                                        </span>
-                                                        <span className={`text-[12px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
-                                                            {item.value || 'N/A'}
-                                                        </span>
-                                                    </div>
+                                        {/* Pages Card */}
+                                        <div className="p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 flex flex-col justify-between hover:shadow-md transition-shadow">
+                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-gray-900 flex items-center justify-center mb-6">
+                                                <BookOpen size={22} className="text-blue-500" />
+                                            </div>
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-1">Páginas</span>
+                                                <span className="text-xl font-bold text-gray-900 dark:text-white">{data.pages || 'N/A'}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Secondary Metadata */}
+                                        <div className="col-span-2 p-5 bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl border border-gray-100/50 dark:border-gray-700/50 flex items-center gap-5 group">
+                                            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover:border-blue-300 transition-colors">
+                                                <Building2 size={20} className="text-blue-500" />
+                                            </div>
+                                            <div className="flex flex-col overflow-hidden">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Editora</span>
+                                                <span className="text-[13px] font-bold text-gray-900 dark:text-white truncate">{data.publisher || 'N/A'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="col-span-2 p-5 bg-gray-50/50 dark:bg-gray-800/30 rounded-3xl border border-gray-100/50 dark:border-gray-700/50 flex items-center gap-5 group">
+                                            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover:border-blue-300 transition-colors">
+                                                <Tag size={20} className="text-blue-500" />
+                                            </div>
+                                            <div className="flex flex-col overflow-hidden">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Gênero</span>
+                                                <span className="text-[13px] font-bold text-gray-900 dark:text-white truncate">{data.genre || 'N/A'}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* ISBN Feature Card */}
+                                        <div className="col-span-4 p-5 bg-gray-900 dark:bg-black text-white rounded-3xl shadow-xl flex items-center justify-between group overflow-hidden relative">
+                                            <div className="absolute -top-6 -right-6 opacity-10 transform group-hover:scale-125 transition-transform duration-700">
+                                                <Hash size={140} />
+                                            </div>
+                                            <div className="flex items-center gap-5 z-10">
+                                                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10">
+                                                    <Hash size={20} className="text-blue-400" />
                                                 </div>
-                                            ))}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-0.5">Identidade Global ISBN</span>
+                                                    <span className="text-sm font-mono tracking-widest font-bold text-blue-50/90">{data.isbn}</span>
+                                                </div>
+                                            </div>
+                                            <div className="hidden md:flex flex-col items-end z-10">
+                                                <span className="text-[8px] font-black uppercase tracking-[0.3em] text-blue-500">Sincronizado via BrasilAPI</span>
+                                                <div className="flex gap-1 mt-2">
+                                                    <div className="w-6 h-1 bg-blue-500 rounded-full"></div>
+                                                    <div className="w-2 h-1 bg-blue-400 rounded-full opacity-50"></div>
+                                                    <div className="w-1 h-1 bg-blue-300 rounded-full opacity-30"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
