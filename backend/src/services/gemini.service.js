@@ -311,7 +311,7 @@ const getBetterCover = async (title, author) => {
       query = encodeURIComponent(`intitle:${cleanTitle}${cleanAuthor ? ` inauthor:${cleanAuthor}` : ''}`);
     }
 
-    let url = `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=1${key ? `&key=${key}` : ''}`;
+    let url = `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=1&langRestrict=pt${key ? `&key=${key}` : ''}`;
     debugLog(`Buscando metadata (Query 1): ${url}`);
     let res = await fetch(url);
     let data = await res.json();
@@ -330,7 +330,7 @@ const getBetterCover = async (title, author) => {
       const cleanTitle = title.replace(/[^\w\s]/gi, '').trim();
       const cleanAuthor = author ? author.replace(/[^\w\s]/gi, '').trim() : '';
       const generalQuery = encodeURIComponent(`${cleanTitle} ${cleanAuthor}`);
-      url = `https://www.googleapis.com/books/v1/volumes?q=${generalQuery}&maxResults=1${key ? `&key=${key}` : ''}`;
+      url = `https://www.googleapis.com/books/v1/volumes?q=${generalQuery}&maxResults=1&langRestrict=pt${key ? `&key=${key}` : ''}`;
       debugLog(`Buscando metadata (Query Geral): ${url}`);
       res = await fetch(url);
       data = await res.json();
