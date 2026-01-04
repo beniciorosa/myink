@@ -4,9 +4,15 @@ require("dotenv").config({ override: true });
 
 function debugLog(msg) {
   const timestamp = new Date().toISOString();
-  const line = `[${timestamp}] ${msg}\n`;
-  fs.appendFileSync('debug_flow.log', line);
-  console.log(msg);
+  const line = `[${timestamp}] ${msg}`;
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      fs.appendFileSync('debug_flow.log', line + '\n');
+    } catch (e) {
+      console.error("Erro ao escrever no arquivo de log:", e.message);
+    }
+  }
+  console.log(line);
 }
 
 function sanitizeJson(str) {
