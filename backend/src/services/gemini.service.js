@@ -231,8 +231,7 @@ const searchBooks = async (query, filters = {}) => {
         }
       });
 
-      const finalResults = await openaiService.rankAndExplain(query, finalBooks);
-      return finalResults;
+      return finalBooks;
     } else {
       // NEW DISCOVERY logic via OpenAI
       const discovery = await openaiService.classifyDiscoveryQuery(intent.value);
@@ -263,7 +262,7 @@ const searchBooks = async (query, filters = {}) => {
       }));
 
       // Re-rank and add explanations for discovery results
-      return await openaiService.rankAndExplain(query, results);
+      return results;
     }
   } catch (err) {
     console.error("Erro searchBooks:", err);

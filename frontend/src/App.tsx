@@ -681,13 +681,6 @@ const App: React.FC = () => {
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">
                                                     {book.author}
                                                 </p>
-                                                {book.whyExplanation && (
-                                                    <div className="mt-auto pt-2 border-t border-gray-50 dark:border-gray-700/50">
-                                                        <p className="text-[10px] text-blue-600/70 dark:text-blue-400/70 italic leading-tight">
-                                                            "{book.whyExplanation}"
-                                                        </p>
-                                                    </div>
-                                                )}
                                             </button>
                                             <button
                                                 onClick={(e) => {
@@ -751,11 +744,6 @@ const App: React.FC = () => {
                                                     <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">
                                                         {book.author}
                                                     </p>
-                                                    {book.whyExplanation && (
-                                                        <p className="text-[11px] text-blue-600/70 dark:text-blue-400/70 italic leading-tight border-l-2 border-blue-100 dark:border-blue-900/50 pl-3 py-1">
-                                                            {book.whyExplanation}
-                                                        </p>
-                                                    )}
                                                     {book.isbn && (
                                                         <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-2 uppercase font-semibold italic">ISBN: {book.isbn}</p>
                                                     )}
@@ -864,30 +852,56 @@ const App: React.FC = () => {
                                     </div>
 
                                     {/* Amazon-Style Horizontal Metadata Bar - Refined per User Feedback */}
-                                    <div className="mt-8 flex flex-wrap items-center justify-between gap-y-4 gap-x-12 px-4 bg-gray-50/50 dark:bg-gray-800/20 py-4 rounded-2xl border border-gray-100 dark:border-gray-700/50">
-                                        {[
-                                            { label: 'Autor', value: data.author, icon: User },
-                                            { label: 'Ano', value: data.publishDate, icon: Calendar },
-                                            { label: 'Editora', value: data.publisher, icon: Building2 },
-                                            { label: 'Páginas', value: data.pages, icon: BookOpen },
-                                            { label: 'Idioma', value: data.language, icon: Languages },
-                                            { label: 'Gênero', value: data.genre, icon: Tag },
-                                            { label: 'ISBN', value: data.isbn, icon: Hash }
-                                        ].map((item, idx) => (
-                                            <div key={idx} className="flex items-center gap-3 group/meta">
-                                                <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
-                                                    <item.icon size={20} className="text-blue-500" />
+                                    <div className="mt-8 flex flex-col gap-4 px-4 bg-gray-50/50 dark:bg-gray-800/20 py-5 rounded-2xl border border-gray-100 dark:border-gray-700/50">
+                                        {/* Row 1: 4 items */}
+                                        <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-6">
+                                            {[
+                                                { label: 'Autor', value: data.author, icon: User },
+                                                { label: 'Ano', value: data.publishDate, icon: Calendar },
+                                                { label: 'Páginas', value: data.pages, icon: BookOpen },
+                                                { label: 'Idioma', value: data.language, icon: Languages }
+                                            ].map((item, idx) => (
+                                                <div key={idx} className="flex items-center gap-3 group/meta min-w-[140px]">
+                                                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
+                                                        <item.icon size={20} className="text-blue-500" />
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                                            {item.label}:
+                                                        </span>
+                                                        <span className={`text-[13px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
+                                                            {item.value || 'N/A'}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                                                        {item.label}:
-                                                    </span>
-                                                    <span className={`text-[13px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
-                                                        {item.value || 'N/A'}
-                                                    </span>
+                                            ))}
+                                        </div>
+
+                                        {/* Divider */}
+                                        <div className="h-px bg-gray-100 dark:bg-gray-700/50 w-full" />
+
+                                        {/* Row 2: 3 items */}
+                                        <div className="flex flex-wrap items-center justify-start gap-y-4 gap-x-16">
+                                            {[
+                                                { label: 'Gênero', value: data.genre, icon: Tag },
+                                                { label: 'Editora', value: data.publisher, icon: Building2 },
+                                                { label: 'ISBN', value: data.isbn, icon: Hash }
+                                            ].map((item, idx) => (
+                                                <div key={idx} className="flex items-center gap-3 group/meta">
+                                                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
+                                                        <item.icon size={20} className="text-blue-500" />
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                                            {item.label}:
+                                                        </span>
+                                                        <span className={`text-[13px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
+                                                            {item.value || 'N/A'}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
