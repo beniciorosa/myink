@@ -6,7 +6,9 @@ import { FlashcardItem } from './components/FlashcardItem';
 import { Quiz } from './components/Quiz';
 import Logo from './components/Logo';
 import { BarcodeScanner } from './components/BarcodeScanner';
-import { Camera, Search, ChevronRight, Moon, Sun, RefreshCcw, Layout, HelpCircle, Trophy, Heart, User, Calendar, Hash, BookOpen, Building2, Trash2, List, Pencil, Languages, Tag, ChevronDown, ChevronUp } from 'lucide-react';
+import { Camera, Search, ChevronRight, Moon, Sun, RefreshCcw, Layout, HelpCircle, Trophy, Heart, User, Calendar, Hash, BookOpen, Building2, Trash2, List, Pencil, Languages, Tag, ChevronDown, ChevronUp, LogOut, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { supabase } from './lib/supabase';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Last Updated: 2026-01-03 23:25 (THEME FIX V3.0)
 const App: React.FC = () => {
@@ -43,8 +45,36 @@ const App: React.FC = () => {
     const synopsisRef = React.useRef<HTMLDivElement>(null);
     const [hasOverflow, setHasOverflow] = useState(false);
 
-    // Load history and favorites on mount
+    // Supabase States
+    const [user, setUser] = useState<SupabaseUser | null>(null);
+    const [profile, setProfile] = useState<{ is_admin: boolean } | null>(null);
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+    const [authEmail, setAuthEmail] = useState('');
+    const [authPassword, setAuthPassword] = useState('');
+    const [authLoading, setAuthLoading] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
+
+    // Load history and favorites on mount + Supabase Auth
     useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+            if (session?.user) fetchProfile(session.user.id);
+        };
+
+        checkSession();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                fetchProfile(session.user.id);
+                syncDataToCloud(session.user.id);
+            } else {
+                setProfile(null);
+            }
+        });
+
         const savedHistory = localStorage.getItem('myink_history');
         if (savedHistory) setHistory(JSON.parse(savedHistory));
 
@@ -54,50 +84,171 @@ const App: React.FC = () => {
         setIsDark(false);
         document.documentElement.classList.remove('dark');
         document.body.classList.remove('dark');
+
+        return () => subscription.unsubscribe();
     }, []);
 
-    const saveToHistory = (bookData: any) => {
-        if (!bookData.title || !bookData.isbn) return;
-        setHistory(prev => {
-            const exists = prev.find(h => h.isbn === bookData.isbn || (h.title === bookData.title && h.author === bookData.author));
-            if (exists) return prev;
-            const newHistory = [bookData, ...prev].slice(0, 10);
-            localStorage.setItem('myink_history', JSON.stringify(newHistory));
-            return newHistory;
-        });
+    const fetchProfile = async (userId: string) => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (!error && data) {
+            setProfile(data);
+        }
     };
 
-    const deleteHistoryItem = (e: React.MouseEvent, isbn: string) => {
-        e.stopPropagation();
-        setHistory(prev => {
-            const newHistory = prev.filter(h => h.isbn !== isbn);
-            localStorage.setItem('myink_history', JSON.stringify(newHistory));
-            return newHistory;
-        });
-    };
+    const syncDataToCloud = async (userId: string) => {
+        // Initial sync from LocalStorage to Supabase
+        const localFavs = JSON.parse(localStorage.getItem('myink_favorites') || '[]');
+        const localHist = JSON.parse(localStorage.getItem('myink_history') || '[]');
 
-    const deleteFavoriteItem = (e: React.MouseEvent, isbn: string) => {
-        e.stopPropagation();
-        setFavorites(prev => {
-            const newFavorites = prev.filter(f => f.isbn !== isbn);
-            localStorage.setItem('myink_favorites', JSON.stringify(newFavorites));
-            return newFavorites;
-        });
-    };
-
-    const toggleFavorite = () => {
-        if (!data || !data.isbn) return;
-        setFavorites(prev => {
-            const exists = prev.find(f => f.isbn === data.isbn);
-            let newFavorites;
-            if (exists) {
-                newFavorites = prev.filter(f => f.isbn !== data.isbn);
-            } else {
-                newFavorites = [data, ...prev];
+        if (localFavs.length > 0) {
+            for (const book of localFavs) {
+                await supabase.from('favorites').upsert({ user_id: userId, book_data: book });
             }
-            localStorage.setItem('myink_favorites', JSON.stringify(newFavorites));
-            return newFavorites;
-        });
+        }
+        if (localHist.length > 0) {
+            for (const book of localHist) {
+                await supabase.from('search_history').upsert({ user_id: userId, book_data: book });
+            }
+        }
+
+        // After initial sync, load from cloud
+        loadFromCloud(userId);
+    };
+
+    const loadFromCloud = async (userId: string) => {
+        const { data: cloudFavs } = await supabase.from('favorites').select('book_data').eq('user_id', userId);
+        if (cloudFavs) setFavorites(cloudFavs.map(f => f.book_data));
+
+        const { data: cloudHist } = await supabase.from('search_history').select('book_data').eq('user_id', userId).order('created_at', { ascending: false }).limit(10);
+        if (cloudHist) setHistory(cloudHist.map(h => h.book_data));
+    };
+
+    const handleAuth = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setAuthLoading(true);
+        setAuthError(null);
+
+        try {
+            if (authMode === 'login') {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: authEmail,
+                    password: authPassword,
+                });
+                if (error) throw error;
+                setShowAuthModal(false);
+            } else {
+                const { error } = await supabase.auth.signUp({
+                    email: authEmail,
+                    password: authPassword,
+                });
+                if (error) throw error;
+                setAuthMode('login');
+                setAuthError("Confirme seu e-mail para continuar.");
+            }
+        } catch (err: any) {
+            setAuthError(err.message || "Erro na autenticação");
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setFavorites([]);
+        setHistory([]);
+        localStorage.removeItem('myink_favorites');
+        localStorage.removeItem('myink_history');
+    };
+
+    const saveToHistory = async (bookData: any) => {
+        if (!bookData.title || !bookData.isbn) return;
+
+        if (user) {
+            const { error } = await supabase.from('search_history').upsert({
+                user_id: user.id,
+                book_data: bookData
+            });
+            if (!error) loadFromCloud(user.id);
+        } else {
+            setHistory(prev => {
+                const exists = prev.find(h => h.isbn === bookData.isbn || (h.title === bookData.title && h.author === bookData.author));
+                if (exists) return prev;
+                const newHistory = [bookData, ...prev].slice(0, 10);
+                localStorage.setItem('myink_history', JSON.stringify(newHistory));
+                return newHistory;
+            });
+        }
+    };
+
+    const deleteHistoryItem = async (e: React.MouseEvent, isbn: string) => {
+        e.stopPropagation();
+        if (user) {
+            // In a real app we'd need the ID or a better filter, 
+            // but for simple history matched by ISBN in the JSONB:
+            const { error } = await supabase
+                .from('search_history')
+                .delete()
+                .eq('user_id', user.id)
+                .filter('book_data->>isbn', 'eq', isbn);
+
+            if (!error) loadFromCloud(user.id);
+        } else {
+            setHistory(prev => {
+                const newHistory = prev.filter(h => h.isbn !== isbn);
+                localStorage.setItem('myink_history', JSON.stringify(newHistory));
+                return newHistory;
+            });
+        }
+    };
+
+    const deleteFavoriteItem = async (e: React.MouseEvent, isbn: string) => {
+        e.stopPropagation();
+        if (user) {
+            const { error } = await supabase
+                .from('favorites')
+                .delete()
+                .eq('user_id', user.id)
+                .filter('book_data->>isbn', 'eq', isbn);
+
+            if (!error) loadFromCloud(user.id);
+        } else {
+            setFavorites(prev => {
+                const newFavorites = prev.filter(f => f.isbn !== isbn);
+                localStorage.setItem('myink_favorites', JSON.stringify(newFavorites));
+                return newFavorites;
+            });
+        }
+    };
+
+    const toggleFavorite = async () => {
+        if (!data || !data.isbn) return;
+
+        if (user) {
+            const exists = favorites.find(f => f.isbn === data.isbn);
+            if (exists) {
+                await supabase.from('favorites').delete().eq('user_id', user.id).filter('book_data->>isbn', 'eq', data.isbn);
+            } else {
+                await supabase.from('favorites').insert({ user_id: user.id, book_data: data });
+            }
+            loadFromCloud(user.id);
+        } else {
+            setFavorites(prev => {
+                const exists = prev.find(f => f.isbn === data.isbn);
+                let newFavorites;
+                if (exists) {
+                    newFavorites = prev.filter(f => f.isbn !== data.isbn);
+                } else {
+                    newFavorites = [data, ...prev];
+                }
+                localStorage.setItem('myink_favorites', JSON.stringify(newFavorites));
+                return newFavorites;
+            });
+        }
     };
 
     // Simplified theme effect
@@ -448,6 +599,34 @@ const App: React.FC = () => {
                             <Heart size={14} className="text-red-500 fill-red-500" />
                             Favoritos
                         </button>
+
+                        {user ? (
+                            <div className="flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-gray-700 ml-1">
+                                <div className="flex flex-col items-end hidden sm:flex">
+                                    <span className="text-[10px] font-bold text-gray-900 dark:text-white truncate max-w-[100px]">{user.email?.split('@')[0]}</span>
+                                    {profile?.is_admin && (
+                                        <span className="text-[8px] font-black uppercase text-blue-500 tracking-widest flex items-center gap-1">
+                                            <ShieldCheck size={8} /> Admin
+                                        </span>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    title="Sair"
+                                    className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                                >
+                                    <LogOut size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+                                className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-all text-xs font-bold uppercase tracking-widest"
+                            >
+                                <User size={14} />
+                                Entrar
+                            </button>
+                        )}
 
                         <button
                             onClick={() => setShowHistoryModal(true)}
@@ -1281,6 +1460,96 @@ const App: React.FC = () => {
                         }}
                         onClose={() => setIsScannerOpen(false)}
                     />
+                )
+            }
+            {/* Modal Auth */}
+            {
+                showAuthModal && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <div onClick={() => setShowAuthModal(false)} className="absolute inset-0 bg-gray-950/60 backdrop-blur-md" />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col relative z-50 border border-gray-200 dark:border-gray-700 p-8"
+                        >
+                            <div className="text-center mb-8">
+                                <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-800">
+                                    <User size={32} className="text-blue-500" />
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">
+                                    {authMode === 'login' ? 'Bem-vindo de volta' : 'Criar Conta'}
+                                </h3>
+                                <p className="text-sm text-gray-400">
+                                    {authMode === 'login' ? 'Entre para sincronizar seus livros na nuvem.' : 'Cadastre-se para nunca perder seus favoritos.'}
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleAuth} className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase text-gray-400 ml-1">E-mail</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                        <input
+                                            type="email"
+                                            value={authEmail}
+                                            onChange={(e) => setAuthEmail(e.target.value)}
+                                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-bold"
+                                            placeholder="seu@email.com"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Senha</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                        <input
+                                            type="password"
+                                            value={authPassword}
+                                            onChange={(e) => setAuthPassword(e.target.value)}
+                                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-bold"
+                                            placeholder="••••••••"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {authError && (
+                                    <p className="text-xs text-red-500 text-center font-bold bg-red-50 dark:bg-red-900/20 py-2 rounded-xl">
+                                        {authError}
+                                    </p>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={authLoading}
+                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-500/20 font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                >
+                                    {authLoading ? (
+                                        <RefreshCcw size={16} className="animate-spin" />
+                                    ) : (
+                                        <>
+                                            {authMode === 'login' ? 'Entrar' : 'Cadastrar'}
+                                            <ChevronRight size={16} />
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+
+                            <div className="mt-8 text-center pt-6 border-t border-gray-50 dark:border-gray-700">
+                                <p className="text-xs text-gray-400 font-bold">
+                                    {authMode === 'login' ? 'Não tem conta?' : 'Já tem conta?'}
+                                    <button
+                                        onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                                        className="ml-2 text-blue-500 hover:underline"
+                                    >
+                                        {authMode === 'login' ? 'Criar agora' : 'Fazer login'}
+                                    </button>
+                                </p>
+                            </div>
+                        </motion.div>
+                    </div>
                 )
             }
         </div >

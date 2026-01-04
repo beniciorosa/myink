@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
+    "@supabase/supabase-js": "^2.89.0",
     "axios": "^1.13.2",
     "framer-motion": "^12.23.26",
     "html5-qrcode": "^2.3.8",
