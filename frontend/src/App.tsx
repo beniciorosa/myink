@@ -594,7 +594,12 @@ const App: React.FC = () => {
                                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-widest">
                                         Resultados para: <span className="text-blue-600 dark:text-blue-400">"{lastQuery}"</span>
                                     </h2>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Encontramos {searchResults.length} livros relevantes.</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                        Encontramos {searchResults.length} livros relevantes.
+                                        <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest border border-blue-100 dark:border-blue-800 animate-pulse">
+                                            IA Rerank Ativo
+                                        </span>
+                                    </p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -656,9 +661,16 @@ const App: React.FC = () => {
                                                         {book.title}
                                                     </h3>
                                                 </div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-2">
                                                     {book.author}
                                                 </p>
+                                                {book.whyExplanation && (
+                                                    <div className="mt-auto pt-2 border-t border-gray-50 dark:border-gray-700/50">
+                                                        <p className="text-[10px] text-blue-600/70 dark:text-blue-400/70 italic leading-tight">
+                                                            "{book.whyExplanation}"
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </button>
                                             <button
                                                 onClick={(e) => {
@@ -719,11 +731,16 @@ const App: React.FC = () => {
                                                     <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">
                                                         {book.title}
                                                     </h3>
-                                                    <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+                                                    <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2">
                                                         {book.author}
                                                     </p>
+                                                    {book.whyExplanation && (
+                                                        <p className="text-[11px] text-blue-600/70 dark:text-blue-400/70 italic leading-tight border-l-2 border-blue-100 dark:border-blue-900/50 pl-3 py-1">
+                                                            {book.whyExplanation}
+                                                        </p>
+                                                    )}
                                                     {book.isbn && (
-                                                        <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-1 uppercase font-semibold">ISBN: {book.isbn}</p>
+                                                        <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-2 uppercase font-semibold italic">ISBN: {book.isbn}</p>
                                                     )}
                                                 </div>
                                             </button>

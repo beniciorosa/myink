@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const openaiService = require("./openai.service");
 const fs = require('fs');
 require("dotenv").config({ override: true });
 
@@ -230,18 +231,18 @@ const searchBooks = async (query, filters = {}) => {
         }
       });
 
-      return finalBooks;
+      const finalResults = await openaiService.rankAndExplain(query, finalBooks);
+      return finalResults;
     } else {
-      // DISCOVERY logic
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", generationConfig: { responseMimeType: "application/json" } });
-      const prompt = `O usuário quer "${intent.value}". Sugira 8 livros famosos e importantes sobre esse tema (focando em edições brasileiras).
-      Retorne JSON: { "suggestions": [ { "title": "Título", "author": "Autor" }, ... ] }`;
-      const result = await model.generateContent(prompt);
-      const suggestions = JSON.parse(sanitizeJson(result.response.text())).suggestions;
+      // NEW DISCOVERY logic via OpenAI
+      const discovery = await openaiService.classifyDiscoveryQuery(intent.value);
+      if (!discovery) return [];
 
-      return await Promise.all(suggestions.map(async (s) => {
+      const suggestions = discovery.suggestions || [];
+      const results = await Promise.all(suggestions.map(async (s) => {
         try {
-          const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(s.title)}+inauthor:${encodeURIComponent(s.author)}&maxResults=1&langRestrict=pt${key ? `&key=${key}` : ''}`;
+          const q = `intitle:${encodeURIComponent(s.title)}+inauthor:${encodeURIComponent(s.author)}`;
+          const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&langRestrict=pt${key ? `&key=${key}` : ''}`;
           const res = await fetch(url);
           const data = await res.json();
           if (data.items?.[0]) {
@@ -260,6 +261,9 @@ const searchBooks = async (query, filters = {}) => {
           return { title: s.title, author: s.author, id: Math.random().toString(), coverUrl: null, isbn: null, language: 'pt' };
         }
       }));
+
+      // Re-rank and add explanations for discovery results
+      return await openaiService.rankAndExplain(query, results);
     }
   } catch (err) {
     console.error("Erro searchBooks:", err);

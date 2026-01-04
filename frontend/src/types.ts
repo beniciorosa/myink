@@ -39,6 +39,8 @@ export interface BookEdition {
   year: string;
   isbn: string;
   coverUrl: string | null;
+  language?: string;
+  whyExplanation?: string;
 }
 
 export enum AppState {
