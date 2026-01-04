@@ -424,7 +424,7 @@ const App: React.FC = () => {
             }
             setData(bookInfo);
             saveToHistory(bookInfo);
-            setState(AppState.SUMMARY);
+            setState(AppState.DETAILS);
             setIsSummaryExpanded(false);
         } catch (err) {
             console.error(err);
@@ -622,7 +622,7 @@ const App: React.FC = () => {
             }
             setData(selectedData);
             saveToHistory(selectedData);
-            setState(AppState.SUMMARY);
+            setState(AppState.DETAILS);
             setIsSummaryExpanded(false);
         } catch (err) {
             console.error(err);
@@ -693,7 +693,12 @@ const App: React.FC = () => {
 
     const startSession = () => {
         setIsTimerRunning(true);
-        setState(AppState.ACTIVE_READING);
+        // The following lines appear to be a misplaced enum definition.
+        // Assuming AppState enum is defined elsewhere, these are commented out
+        // to prevent syntax errors.
+        // ACTIVE_READING = 'ACTIVE_READING',
+        // NOTES = 'NOTES',
+        // DETAILS = 'DETAILS'
     };
 
     const stopSession = () => {
@@ -830,13 +835,13 @@ const App: React.FC = () => {
                                 <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-[#151f2b]"></span>
                             </button>
                             <div className="h-10 w-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => user ? handleLogout() : setShowAuthModal(true)}>
-                                <img alt="Profile" className="h-full w-full object-cover" src={user?.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBh_4rDeneiWH-R1cD5Qb8eQOrx-aFCF8nMgbfahXsEi3eXwhE75xwLqCvXL4AmizYCLN8maOe9FYy1IP3QB6mUMEyFFfk42Cio0xM1Nwqafeuvul8ZUS8Vxzvg-JWETYJNm_2iv7aBP5GTasCCmixwpudZGucvYOH1kPo-ZJirOSadwJUY4V4dqW2UunGUghl1qqi5SAkeBkS1aOTU9L0gaF7W_lSyUnTZnXmkMH3YZbRYJU4YaP5Jao3naRFXIKaSJ1gvRtgqnxN7"} />
+                                <img alt="Profile" className="h-full w-full object-cover" src={user?.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBh_4rDeneiWH-R1cD5Qb8eQOrx-aFCF8nMgbfahXsEi3eXwhE75xwLqCvXL4AmizYCLN8maOe9FYy1IP3QB6mUMEyFFfk42Cio0xM1Nwqafeuvul8ZUS8Vxzvg-JWETYJNm_2iv7aBP5GTasCCmixwpudZGucvYOH1kPo-ZJirOSadwJUY4V4dqW2UunGUghl1qqi5SAkeBkS1aOTU9L0gaF7W_lSyUnTZnXmkMH3YZbRYJU4V4dqW2UunGUghl1qqi5SAkeBkS1aOTU9L0gaF7W_lSyUnTZnXmkMH3YZbRYJU4YaP5Jao3naRFXIKaSJ1gvRtgqnxN7"} />
                             </div>
                         </div>
                     </header>
                 )}
 
-                <div className={`flex-grow overflow-y-auto custom-scrollbar relative z-10 ${[AppState.NOTES, AppState.SHELF, AppState.SEARCH_RESULTS].includes(state) ? 'px-0 pb-0 h-full max-w-full' : 'pt-4 pb-20 px-6 container mx-auto'}`}>
+                <div className={`flex-grow overflow-y-auto custom-scrollbar relative z-10 ${[AppState.NOTES, AppState.SHELF, AppState.SEARCH_RESULTS, AppState.DETAILS].includes(state) ? 'px-0 pb-0 h-full max-w-full' : 'pt-4 pb-20 px-6 container mx-auto'}`}>
                     <AnimatePresence mode="wait">
                         {state === AppState.IDLE && (
                             <motion.div
@@ -1564,7 +1569,16 @@ const App: React.FC = () => {
                                             {/* Book Item: The Hobbit */}
                                             <div
                                                 className="group flex flex-col sm:flex-row items-stretch gap-4 rounded-xl bg-white dark:bg-[#111a22] p-4 shadow-sm border border-[#e7edf3] dark:border-gray-800 hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
-                                                onClick={() => setState(AppState.NOTES)}
+                                                onClick={() => {
+                                                    setState(AppState.DETAILS);
+                                                    setData({
+                                                        title: 'O Hobbit',
+                                                        author: 'J.R.R. Tolkien',
+                                                        pages: 300,
+                                                        coverUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIbjpIeJYGXR2y66KhsKFqgMCdmyk42kbLTEGXGV0eq1QZSvs2bjxx3F-O--TyYXN05zmb_0gzhBD5IkhzJXO2glmqx6QmnklVyFAIx2o3ieXNDtZfv6I9dINeTU8TRgwY9nybCw4ObBweEPNI0hj1hcQPoVlWX7l-bHhJ0WcXOg2qfyp0Qk4HahVaTpqR7qqs2LehWOHAUMo6dYI0YDxG-0lT_Qk3fNIPZ3rQ_iCfsBt_UaOTROvN5_if8mS6kYGxrRslWm9-iwOs',
+                                                        synopsis: 'Bilbo Bolseiro vive uma vida pacata no Condado, até que o mago Gandalf e uma companhia de anões o levam em uma aventura para recuperar o tesouro guardado pelo dragão Smaug.'
+                                                    });
+                                                }}
                                             >
                                                 <div className="w-full sm:w-[120px] shrink-0 bg-center bg-no-repeat bg-cover rounded-lg aspect-[2/3] shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIbjpIeJYGXR2y66KhsKFqgMCdmyk42kbLTEGXGV0eq1QZSvs2bjxx3F-O--TyYXN05zmb_0gzhBD5IkhzJXO2glmqx6QmnklVyFAIx2o3ieXNDtZfv6I9dINeTU8TRgwY9nybCw4ObBweEPNI0hj1hcQPoVlWX7l-bHhJ0WcXOg2qfyp0Qk4HahVaTpqR7qqs2LehWOHAUMo6dYI0YDxG-0lT_Qk3fNIPZ3rQ_iCfsBt_UaOTROvN5_if8mS6kYGxrRslWm9-iwOs")' }}></div>
                                                 <div className="flex flex-1 flex-col justify-between gap-6 py-1">
@@ -1607,7 +1621,16 @@ const App: React.FC = () => {
                                             {/* Book Item: Dom Casmurro */}
                                             <div
                                                 className="group flex flex-col sm:flex-row items-stretch gap-4 rounded-xl bg-white dark:bg-[#111a22] p-4 shadow-sm border border-[#e7edf3] dark:border-gray-800 hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
-                                                onClick={() => setState(AppState.NOTES)}
+                                                onClick={() => {
+                                                    setState(AppState.DETAILS);
+                                                    setData({
+                                                        title: 'Dom Casmurro',
+                                                        author: 'Machado de Assis',
+                                                        pages: 256,
+                                                        coverUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuATcnA-T31DREBo18MzP8K5YpGIIo1hdJY-Vedr3VC6Jal4nyJ2aeWDm6ixTwf0KQLTO-7jPsnRS-gHCU3DhX51SQO5gG-MqmJd4yWB0romexp-dNoGmkxAnnrg0D4_Ftk4NUSsGeQJkSBhTuhfjKDJP7ZCcBCEWUnkaAdN-pKK7d7WsK7NZNveLjbkiWhUiFWRcUBlDkmnQaLt6EwizN1YaDmPSIFMttOuOv-8BVQdXCTeUuCGsPWTdR0vLWMUDsew8WOG8DbFSFqW',
+                                                        synopsis: 'Uma das maiores obras da literatura brasileira, narrada por Bentinho, que busca atar as duas pontas da vida e restaurar na velhice a adolescência. A dúvida sobre a traição de Capitu é o fio condutor.'
+                                                    });
+                                                }}
                                             >
                                                 <div className="w-full sm:w-[120px] shrink-0 bg-center bg-no-repeat bg-cover rounded-lg aspect-[2/3] shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuATcnA-T31DREBo18MzP8K5YpGIIo1hdJY-Vedr3VC6Jal4nyJ2aeWDm6ixTwf0KQLTO-7jPsnRS-gHCU3DhX51SQO5gG-MqmJd4yWB0romexp-dNoGmkxAnnrg0D4_Ftk4NUSsGeQJkSBhTuhfjKDJP7ZCcBCEWUnkaAdN-pKK7d7WsK7NZNveLjbkiWhUiFWRcUBlDkmnQaLt6EwizN1YaDmPSIFMttOuOv-8BVQdXCTeUuCGsPWTdR0vLWMUDsew8WOG8DbFSFqW")' }}></div>
                                                 <div className="flex flex-1 flex-col justify-between gap-6 py-1">
@@ -1650,7 +1673,16 @@ const App: React.FC = () => {
                                             {/* Book Item: Clean Code */}
                                             <div
                                                 className="group flex flex-col sm:flex-row items-stretch gap-4 rounded-xl bg-white dark:bg-[#111a22] p-4 shadow-sm border border-[#e7edf3] dark:border-gray-800 hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer"
-                                                onClick={() => setState(AppState.NOTES)}
+                                                onClick={() => {
+                                                    setState(AppState.DETAILS);
+                                                    setData({
+                                                        title: 'Clean Code',
+                                                        author: 'Robert C. Martin',
+                                                        pages: 464,
+                                                        coverUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDXrgIHLozW9x8QPNIbqD3micjyca-1rQu36AiMxXohdXva3yUr8p9dvVN6LiPoe4QwOFk3Y16NR-41L3BDbdTGUg8pXX8DRzpIGhiE0crxkDuG5ogaac1HZ8MHIgYK9yDNQ6-kDG30xuBwbo_1NmFoEKmjIu4b_zPdwEgvmRVTd7szDJOMWK2oq1w4m-IRllgf6UAcIeVTdIet2EJYLK6fuTuSAKy2tMA0es2SD5wOS7Ju0uyyijaSFLSZxGdIvR8SKmXgVaMIEBIN',
+                                                        synopsis: 'Even bad code can function. But if code isn\'t clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn\'t have to be that way.'
+                                                    });
+                                                }}
                                             >
                                                 <div className="w-full sm:w-[120px] shrink-0 bg-center bg-no-repeat bg-cover rounded-lg aspect-[2/3] shadow-inner" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXrgIHLozW9x8QPNIbqD3micjyca-1rQu36AiMxXohdXva3yUr8p9dvVN6LiPoe4QwOFk3Y16NR-41L3BDbdTGUg8pXX8DRzpIGhiE0crxkDuG5ogaac1HZ8MHIgYK9yDNQ6-kDG30xuBwbo_1NmFoEKmjIu4b_zPdwEgvmRVTd7szDJOMWK2oq1w4m-IRllgf6UAcIeVTdIet2EJYLK6fuTuSAKy2tMA0es2SD5wOS7Ju0uyyijaSFLSZxGdIvR8SKmXgVaMIEBIN")' }}></div>
                                                 <div className="flex flex-1 flex-col justify-between gap-6 py-1">
@@ -1960,6 +1992,198 @@ const App: React.FC = () => {
                             </motion.div>
                         )}
 
+                        {state === AppState.DETAILS && data && (
+                            <motion.div
+                                key="details"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="bg-background-light dark:bg-background-dark min-h-full font-display text-slate-900 dark:text-white pb-20"
+                            >
+                                <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                                        {/* Left Column: Sticky Cover & Actions */}
+                                        <div className="lg:col-span-4 xl:col-span-3">
+                                            <div className="sticky top-24 flex flex-col gap-6">
+                                                {/* Book Cover */}
+                                                <div className="relative group perspective-1000 w-full max-w-xs mx-auto lg:max-w-none">
+                                                    <div className="aspect-[2/3] w-full bg-slate-200 dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden relative">
+                                                        <div
+                                                            className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                                                            style={{ backgroundImage: `url('${data.coverUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuCbVcqsIaz74uIf4lzif1Vt94TByZZZ4A-ciF_i_iDapHqAb84vNCDb1qPTo9e7n6s7s83FMfp5cFHpsBkyUpz_yous2i6dW4aaDx2oVxTM_Rq8-nLRzztNOC55dIkjXVZf3VcPof_1TRnMm9u0QEHhrRET8eSxsHjtoPsqE8rq0pNSfF9Yfbl42H7uOptkOGmj9noj_xjhQFnFzDl3sML_a0Vaxepp1R1_3R4vBHAYj6qYC8axFSnAsj0Up5gTP8s3MTGnY86OCEJ7"}')` }}
+                                                        >
+                                                        </div>
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/10 pointer-events-none"></div>
+                                                    </div>
+                                                </div>
+                                                {/* Actions */}
+                                                <div className="flex flex-col gap-3">
+                                                    <button
+                                                        onClick={() => setState(AppState.ACTIVE_READING)}
+                                                        className="flex items-center justify-center gap-2 w-full bg-primary hover:bg-blue-600 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98]"
+                                                    >
+                                                        <span className="material-symbols-outlined">timer</span>
+                                                        Iniciar Sessão de Leitura
+                                                    </button>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <button
+                                                            onClick={() => setState(AppState.SHELF)}
+                                                            className="flex items-center justify-center gap-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/50 text-slate-700 dark:text-slate-200 font-medium py-3 px-4 rounded-xl transition-all"
+                                                        >
+                                                            <span className="material-symbols-outlined">library_add</span>
+                                                            Biblioteca
+                                                        </button>
+                                                        <button className="flex items-center justify-center gap-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/50 text-slate-700 dark:text-slate-200 font-medium py-3 px-4 rounded-xl transition-all">
+                                                            <span className="material-symbols-outlined">favorite</span>
+                                                            Favorito
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                {/* Progress */}
+                                                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                                    <div className="flex justify-between items-end mb-2">
+                                                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Seu Progresso</span>
+                                                        <span className="text-sm font-bold text-slate-900 dark:text-white">32%</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                                                        <div className="bg-primary h-2 rounded-full" style={{ width: '32%' }}></div>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 mt-2 text-right">Página 210 de {data.pages || 656}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Right Column: Content */}
+                                        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-8">
+                                            {/* Book Header */}
+                                            <div className="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-8">
+                                                {/* Chips */}
+                                                <div className="flex flex-wrap gap-2">
+                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-primary dark:bg-primary/10 dark:text-blue-300">Fantasia</span>
+                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Alta Fantasia</span>
+                                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Magia</span>
+                                                </div>
+                                                {/* Title & Author */}
+                                                <div>
+                                                    <h1 className="text-4xl sm:text-5xl font-semibold text-slate-900 dark:text-white leading-tight tracking-tight mb-2">{data.title}</h1>
+                                                    <a className="text-xl sm:text-2xl text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors font-medium" href="#">{data.author}</a>
+                                                </div>
+                                                {/* Meta Info Grid */}
+                                                <div className="flex flex-wrap items-center gap-x-8 gap-y-4 text-sm text-slate-600 dark:text-slate-400 mt-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-lg">star</span>
+                                                        <span className="font-bold text-slate-900 dark:text-white text-base">4.8</span>
+                                                        <span className="text-slate-400">(3.450 avaliações)</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-lg">auto_stories</span>
+                                                        <span>{data.pages || 656} Páginas</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-lg">calendar_month</span>
+                                                        <span>Publicado em {data.publishDate || '2007'}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-lg">domain</span>
+                                                        <span>{data.publisher || 'Editora Arqueiro'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* Tabs Navigation */}
+                                            <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto hide-scrollbar">
+                                                <button className="px-6 py-3 text-sm font-semibold border-b-2 border-primary text-primary whitespace-nowrap">Sinopse</button>
+                                                <button className="px-6 py-3 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border-b-2 border-transparent hover:border-slate-300 transition-colors whitespace-nowrap">Minhas Anotações</button>
+                                                <button className="px-6 py-3 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border-b-2 border-transparent hover:border-slate-300 transition-colors whitespace-nowrap">Avaliações</button>
+                                                <button className="px-6 py-3 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 border-b-2 border-transparent hover:border-slate-300 transition-colors whitespace-nowrap">Citações</button>
+                                            </div>
+                                            {/* Tab Content: Sinopse */}
+                                            <div className="prose prose-lg dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                <p>{data.synopsis || "Ninguém sabe ao certo quem é o herói ou o vilão neste fascinante universo criado por Patrick Rothfuss. Na verdade, essas duas figuras se concentram em Kote, um homem enigmático que se esconde sob a identidade de proprietário da hospedaria Marco do Percurso."}</p>
+                                                <button className="text-primary font-semibold text-sm hover:underline mt-2 flex items-center gap-1">
+                                                    Ler sinopse completa
+                                                    <span className="material-symbols-outlined text-sm">expand_more</span>
+                                                </button>
+                                            </div>
+                                            {/* Notes Section Preview */}
+                                            <div className="bg-white dark:bg-[#1a2632] rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm mt-4">
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-primary">edit_note</span>
+                                                        Anotações Recentes
+                                                    </h3>
+                                                    <button className="text-sm text-primary font-medium hover:underline">Ver todas ({shelfNotes.length})</button>
+                                                </div>
+                                                <div className="flex gap-4 items-start mb-6">
+                                                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary font-bold shrink-0">
+                                                        You
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="relative">
+                                                            <textarea className="w-full bg-slate-50 dark:bg-slate-800 border-0 rounded-xl p-4 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-primary resize-none min-h-[100px]" placeholder="O que você está pensando sobre este trecho?"></textarea>
+                                                            <div className="absolute bottom-3 right-3 flex gap-2">
+                                                                <button className="p-1 text-slate-400 hover:text-primary transition-colors"><span className="material-symbols-outlined text-sm">format_bold</span></button>
+                                                                <button className="p-1 text-slate-400 hover:text-primary transition-colors"><span className="material-symbols-outlined text-sm">format_italic</span></button>
+                                                                <button className="bg-primary hover:bg-blue-600 text-white p-1.5 rounded-lg transition-colors shadow-sm">
+                                                                    <span className="material-symbols-outlined text-sm block">send</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    {shelfNotes.slice(0, 2).map((note, idx) => (
+                                                        <div key={idx} className="pl-4 border-l-2 border-slate-200 dark:border-slate-700 hover:border-primary transition-colors group">
+                                                            <div className="flex justify-between items-start">
+                                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 block">Pág. {note.page}</span>
+                                                                <span className="text-xs text-slate-400">Há 2 dias</span>
+                                                            </div>
+                                                            <p className="text-slate-700 dark:text-slate-300 italic">"{note.content}"</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {/* Reviews Summary */}
+                                            <div className="mt-4">
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Avaliações da Comunidade</h3>
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 lg:p-8">
+                                                    <div className="flex flex-col md:flex-row gap-8 items-center">
+                                                        {/* Rating Number */}
+                                                        <div className="flex flex-col items-center justify-center text-center min-w-[140px]">
+                                                            <span className="text-5xl font-black text-slate-900 dark:text-white">4.8</span>
+                                                            <div className="flex gap-1 my-2 text-amber-400">
+                                                                <span className="material-symbols-outlined filled">star</span>
+                                                                <span className="material-symbols-outlined filled">star</span>
+                                                                <span className="material-symbols-outlined filled">star</span>
+                                                                <span className="material-symbols-outlined filled">star</span>
+                                                                <span className="material-symbols-outlined filled" style={{ fontVariationSettings: "'FILL' 0.5" }}>star</span>
+                                                            </div>
+                                                            <span className="text-sm text-slate-500">Baseado em 3.450 reviews</span>
+                                                        </div>
+                                                        {/* Bars */}
+                                                        <div className="flex-1 w-full max-w-md space-y-2">
+                                                            {[
+                                                                { stars: 5, pct: 80 },
+                                                                { stars: 4, pct: 12 },
+                                                                { stars: 3, pct: 5 },
+                                                                { stars: 2, pct: 2 },
+                                                                { stars: 1, pct: 1 }
+                                                            ].map(item => (
+                                                                <div key={item.stars} className="flex items-center gap-3 text-xs sm:text-sm">
+                                                                    <span className="font-bold w-3 text-right">{item.stars}</span>
+                                                                    <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                                        <div className="h-full bg-primary rounded-full" style={{ width: `${item.pct}%` }}></div>
+                                                                    </div>
+                                                                    <span className="text-slate-500 w-8">{item.pct}%</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
 
                         {state === AppState.ACTIVE_READING && (
                             <motion.div
