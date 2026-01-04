@@ -8,10 +8,15 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '20mb' }));
 
-const PORT = process.env.PORT || 3001;
+app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", env: process.env.NODE_ENV });
+});
 
-
-
+// Middleware para LOG de requisições no painel Vercel
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
 app.post("/api/flashcards", async (req, res) => {
     const { title, author, summary } = req.body;
     try {
