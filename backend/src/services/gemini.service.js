@@ -147,8 +147,40 @@ const searchBooks = async (query, filters = {}) => {
 
     debugLog(`Intenção de busca: ${intent.type} para "${intent.value}"`);
 
+    const isbnClean = query.replace(/\D/g, '');
+    const isIsbnSearch = /^(97(8|9))?\d{9}(\d|X)$/.test(isbnClean);
+
     const key = process.env.GOOGLE_BOOKS_API_KEY;
     let rawItems = [];
+
+    // Pre-catch ISBNs in specialized APIs if searching specifically by code
+    if (isIsbnSearch) {
+      debugLog(`Detectado ISBN na busca geral: ${isbnClean}. Consultando BrasilAPI/OL...`);
+      const [brasilData, olData] = await Promise.all([
+        getBrasilAPIData(isbnClean),
+        getOpenLibraryData(isbnClean)
+      ]);
+
+      const best = brasilData || olData;
+      if (best) {
+        // Pre-construct a result that follows Google's format to be processed later
+        rawItems.push({
+          id: `isbn-${isbnClean}`,
+          volumeInfo: {
+            title: best.resolvedTitle,
+            authors: best.resolvedAuthor ? [best.resolvedAuthor] : [],
+            publisher: best.publisher,
+            industryIdentifiers: [{ type: 'ISBN_13', identifier: isbnClean }],
+            categories: best.genre ? [best.genre] : [],
+            description: best.synopsis,
+            language: 'pt', // We assume pt if it comes from BrasilAPI or we found a match to user's ISBN
+            imageLinks: { thumbnail: best.coverUrl || null },
+            publishedDate: String(best.year || '')
+          }
+        });
+        debugLog(`Encontrado resultado especial via ${best.source || 'OpenLibrary'}`);
+      }
+    }
 
     if (intent.type !== "DISCOVERY") {
       // Stage 1: Specific Intent Match

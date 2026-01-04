@@ -191,7 +191,9 @@ export const BarcodeScanner = ({ onScanSuccess, onClose }: BarcodeScannerProps) 
                 <div className="px-6 pb-8">
                     {mode === 'camera' && (
                         <div className="relative rounded-2xl overflow-hidden bg-black aspect-square max-h-[350px] w-full border border-gray-200 dark:border-gray-700">
+                            {/* Scanner container must stay in DOM for Html5Qrcode to work in upload mode */}
                             <div id={cameraContainerId} className="w-full h-full"></div>
+
                             {isScanning && (
                                 <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
                                     <div className="w-[80%] h-[40%] border border-blue-400/50 rounded-lg relative overflow-hidden">
@@ -217,6 +219,11 @@ export const BarcodeScanner = ({ onScanSuccess, onClose }: BarcodeScannerProps) 
                                 </div>
                             )}
                         </div>
+                    )}
+
+                    {/* Always keep a hidden container for the scanner instance when not in camera mode */}
+                    {mode !== 'camera' && (
+                        <div id={cameraContainerId} className="hidden"></div>
                     )}
 
                     {mode === 'upload' && (

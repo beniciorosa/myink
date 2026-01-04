@@ -5,7 +5,7 @@ import logoImg from '../assets/logo.png';
 const Logo: React.FC = () => {
     return (
         <div className="flex items-center">
-            <div className="w-14 h-14 flex items-center justify-center overflow-hidden">
+            <div className="w-[68px] h-[68px] flex items-center justify-center overflow-hidden">
                 <img
                     src={logoImg}
                     alt="myInk Logo"
