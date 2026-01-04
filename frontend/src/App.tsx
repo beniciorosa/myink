@@ -42,6 +42,7 @@ const App: React.FC = () => {
     const [favorites, setFavorites] = useState<any[]>([]);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [showFavoritesModal, setShowFavoritesModal] = useState(false);
+    const [headerSearchInput, setHeaderSearchInput] = useState('');
     const synopsisRef = React.useRef<HTMLDivElement>(null);
     const [hasOverflow, setHasOverflow] = useState(false);
 
@@ -315,7 +316,7 @@ const App: React.FC = () => {
     }, [data, isSummaryExpanded, state]);
 
     const handleSearch = async (e?: React.FormEvent | Event, overrideTitle?: string) => {
-        console.log("handleSearch called", { overrideTitle, bookInput, searchFilters });
+        console.log("handleSearch called", { overrideTitle, bookInput, searchFilters, headerSearchInput });
         if (e) e.preventDefault();
 
         if (!user) {
@@ -324,8 +325,10 @@ const App: React.FC = () => {
             return;
         }
 
-        let queryToSearch = overrideTitle || bookInput;
+        let queryToSearch = overrideTitle || headerSearchInput || bookInput;
         setLastQuery(queryToSearch);
+        setHeaderSearchInput(''); // Clear header search after use
+        setBookInput(''); // Clear main search too
         const activeFilters = isAdvancedSearchOpen ? searchFilters : {};
 
         // If advanced search is open and fields are filled, we use them
@@ -605,9 +608,26 @@ const App: React.FC = () => {
         <div className="min-h-screen flex flex-col font-sans transition-colors duration-200 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
             {/* Header */}
             <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
-                <div className="container mx-auto px-6 h-16 flex justify-between items-center">
-                    <div className="cursor-pointer hover:opacity-80 transition-opacity" onClick={reset}>
-                        <Logo />
+                <div className="container mx-auto px-6 h-20 flex justify-between items-center">
+                    <div className="flex items-center gap-8 flex-1">
+                        <div className="cursor-pointer hover:opacity-80 transition-opacity" onClick={reset}>
+                            <Logo />
+                        </div>
+
+                        {/* Global Header Search */}
+                        <form
+                            onSubmit={handleSearch}
+                            className="hidden lg:flex items-center flex-1 max-w-md relative group"
+                        >
+                            <Search className="absolute left-3 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={16} />
+                            <input
+                                type="text"
+                                value={headerSearchInput}
+                                onChange={(e) => setHeaderSearchInput(e.target.value)}
+                                placeholder="Nova pesquisa..."
+                                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            />
+                        </form>
                     </div>
 
                     <div className="flex items-center gap-4">
