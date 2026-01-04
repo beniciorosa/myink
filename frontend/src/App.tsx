@@ -303,8 +303,8 @@ const App: React.FC = () => {
         if (state === AppState.SUMMARY && synopsisRef.current) {
             const checkOverflow = () => {
                 if (synopsisRef.current) {
-                    // Check if content height exceeds the h-72 threshold (approx 288px)
-                    const isOverflowing = synopsisRef.current.scrollHeight > 290;
+                    // Check if content height exceeds the h-64 threshold (approx 256px) - lowered threshold to ensure it catches more cases
+                    const isOverflowing = synopsisRef.current.scrollHeight > 260;
                     setHasOverflow(isOverflowing);
                 }
             };
@@ -1047,7 +1047,7 @@ const App: React.FC = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="max-w-5xl mx-auto animate-fade-in"
+                            className="max-w-5xl mx-auto animate-fade-in mt-8 md:mt-12"
                         >
                             <div className="flex flex-col bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                                 <div className="px-6 md:px-8 pt-6 md:pt-8 pb-6 w-full">
@@ -1100,56 +1100,32 @@ const App: React.FC = () => {
                                     </div>
 
                                     {/* Amazon-Style Horizontal Metadata Bar - Refined per User Feedback */}
-                                    <div className="mt-8 flex flex-col gap-4 px-4 bg-gray-50/50 dark:bg-gray-800/20 py-5 rounded-2xl border border-gray-100 dark:border-gray-700/50">
-                                        {/* Row 1: 4 items */}
-                                        <div className="flex flex-wrap items-center justify-between gap-y-4 gap-x-6">
-                                            {[
-                                                { label: 'Autor', value: data.author, icon: User },
-                                                { label: 'Ano', value: data.publishDate, icon: Calendar },
-                                                { label: 'Páginas', value: data.pages, icon: BookOpen },
-                                                { label: 'Idioma', value: data.language, icon: Languages }
-                                            ].map((item, idx) => (
-                                                <div key={idx} className="flex items-center gap-2.5 group/meta min-w-[120px]">
-                                                    <div className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
-                                                        <item.icon size={18} className="text-blue-500" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 leading-none mb-0.5">
-                                                            {item.label}
-                                                        </span>
-                                                        <span className={`text-[12px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
-                                                            {item.value || 'N/A'}
-                                                        </span>
-                                                    </div>
+                                    {/* Bento Grid Metadata Header */}
+                                    <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 px-6 md:px-8 pb-2">
+                                        {[
+                                            { label: 'Autor', value: data.author, icon: User, colSpan: 'col-span-2' },
+                                            { label: 'Ano', value: data.publishDate, icon: Calendar },
+                                            { label: 'Páginas', value: data.pages, icon: BookOpen },
+                                            { label: 'Idioma', value: data.language, icon: Languages },
+                                            { label: 'Gênero', value: data.genre, icon: Tag },
+                                            { label: 'Editora', value: data.publisher, icon: Building2 },
+                                            { label: 'ISBN', value: data.isbn, icon: Hash }
+                                        ].map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`flex flex-col p-4 bg-gray-50/50 dark:bg-gray-800/40 rounded-2xl border border-gray-100 dark:border-gray-700/50 hover:border-blue-200 dark:hover:border-blue-800 transition-all group/meta ${item.colSpan || ''}`}
+                                            >
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500">
+                                                        {item.label}
+                                                    </span>
+                                                    <item.icon size={14} className="text-blue-500/50 group-hover/meta:text-blue-500 transition-colors" />
                                                 </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Divider */}
-                                        <div className="h-px bg-gray-100 dark:bg-gray-700/50 w-full" />
-
-                                        {/* Row 2: 3 items */}
-                                        <div className="flex flex-wrap items-center justify-start gap-y-4 gap-x-16">
-                                            {[
-                                                { label: 'Gênero', value: data.genre, icon: Tag },
-                                                { label: 'Editora', value: data.publisher, icon: Building2 },
-                                                { label: 'ISBN', value: data.isbn, icon: Hash }
-                                            ].map((item, idx) => (
-                                                <div key={idx} className="flex items-center gap-2.5 group/meta min-w-[140px]">
-                                                    <div className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
-                                                        <item.icon size={18} className="text-blue-500" />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 leading-none mb-0.5">
-                                                            {item.label}
-                                                        </span>
-                                                        <span className={`text-[12px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
-                                                            {item.value || 'N/A'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                                <span className={`text-sm font-bold truncate leading-tight ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
+                                                    {item.value || 'N/A'}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
