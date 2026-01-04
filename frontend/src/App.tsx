@@ -708,7 +708,7 @@ const App: React.FC = () => {
     };
 
     const reset = () => {
-        setState(AppState.IDLE);
+        setState(AppState.DASHBOARD);
         setBookInput('');
         setData(null);
         setQuizScore(null);
@@ -731,8 +731,8 @@ const App: React.FC = () => {
                     </div>
                     <nav className="flex flex-col gap-2 flex-1">
                         <button
-                            onClick={() => setState(AppState.IDLE)}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${state === AppState.IDLE ? 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
+                            onClick={() => setState(AppState.DASHBOARD)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${state === AppState.DASHBOARD ? 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}`}
                         >
                             <span className="material-symbols-outlined">dashboard</span>
                             <span className="text-sm font-medium">Início</span>
@@ -841,8 +841,226 @@ const App: React.FC = () => {
                     </header>
                 )}
 
-                <div className={`flex-grow overflow-y-auto custom-scrollbar relative z-10 ${[AppState.NOTES, AppState.SHELF, AppState.SEARCH_RESULTS, AppState.DETAILS].includes(state) ? 'px-0 pb-0 h-full max-w-full' : 'pt-4 pb-20 px-6 container mx-auto'}`}>
+                <div className={`flex-grow overflow-y-auto custom-scrollbar relative z-10 ${[AppState.NOTES, AppState.SHELF, AppState.SEARCH_RESULTS, AppState.DETAILS, AppState.DASHBOARD].includes(state) ? 'px-0 pb-0 h-full max-w-full' : 'pt-4 pb-20 px-6 container mx-auto'}`}>
                     <AnimatePresence mode="wait">
+                        {state === AppState.DASHBOARD && (
+                            <motion.div
+                                key="dashboard"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="font-sans text-[#0d141b] dark:text-white"
+                            >
+                                <div className="flex flex-1 justify-center py-5 px-4 md:px-10 lg:px-12">
+                                    <div className="flex flex-col max-w-[1200px] flex-1 w-full gap-8">
+
+                                        {/* Greeting & Stats */}
+                                        <div className="flex flex-col gap-2">
+                                            <h1 className="text-[#0d141b] dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">
+                                                Olá, Leitor
+                                            </h1>
+                                            <p className="text-[#4c739a] text-base font-normal">
+                                                Suas metas de leitura estão em dia. Continue assim!
+                                            </p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <div className="flex flex-col gap-2 rounded-2xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 p-6 shadow-sm">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="size-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                                        <span className="material-symbols-outlined text-[20px]">menu_book</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-[#4c739a]">Livros Lidos</span>
+                                                </div>
+                                                <div className="flex items-end gap-2">
+                                                    <span className="text-4xl font-black text-[#0d141b] dark:text-white">12</span>
+                                                    <span className="text-xs font-bold text-green-600 mb-1.5">+2 esse mês</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 rounded-2xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 p-6 shadow-sm">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="size-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                                                        <span className="material-symbols-outlined text-[20px]">local_fire_department</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-[#4c739a]">Sequência</span>
+                                                </div>
+                                                <div className="flex items-end gap-2">
+                                                    <span className="text-4xl font-black text-[#0d141b] dark:text-white">5</span>
+                                                    <span className="text-xs font-bold text-[#4c739a] mb-1.5">dias</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 rounded-2xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 p-6 shadow-sm">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="size-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                                                        <span className="material-symbols-outlined text-[20px]">timer</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-[#4c739a]">Tempo de Leitura</span>
+                                                </div>
+                                                <div className="flex items-end gap-2">
+                                                    <span className="text-4xl font-black text-[#0d141b] dark:text-white">14h</span>
+                                                    <span className="text-xs font-bold text-[#4c739a] mb-1.5">30min</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-2 rounded-2xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 p-6 shadow-sm">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="size-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-400">
+                                                        <span className="material-symbols-outlined text-[20px]">style</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-[#4c739a]">Flashcards</span>
+                                                </div>
+                                                <div className="flex items-end gap-2">
+                                                    <span className="text-4xl font-black text-[#0d141b] dark:text-white">85</span>
+                                                    <span className="text-xs font-bold text-green-600 mb-1.5">Revisados</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                            {/* Continue Reading Section - Spans 2 columns */}
+                                            <div className="lg:col-span-2 flex flex-col gap-6">
+                                                <div className="flex items-center justify-between">
+                                                    <h2 className="text-[#0d141b] dark:text-white text-xl font-bold leading-tight">Continue Lendo</h2>
+                                                    <button
+                                                        onClick={() => setState(AppState.SHELF)}
+                                                        className="text-primary text-sm font-bold hover:underline"
+                                                    >
+                                                        Ver todos
+                                                    </button>
+                                                </div>
+
+                                                <div
+                                                    className="group relative flex flex-col sm:flex-row gap-6 p-6 rounded-[24px] bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
+                                                    onClick={() => {
+                                                        setState(AppState.DETAILS);
+                                                        setData({
+                                                            title: 'O Hobbit',
+                                                            author: 'J.R.R. Tolkien',
+                                                            pages: 300,
+                                                            coverUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIbjpIeJYGXR2y66KhsKFqgMCdmyk42kbLTEGXGV0eq1QZSvs2bjxx3F-O--TyYXN05zmb_0gzhBD5IkhzJXO2glmqx6QmnklVyFAIx2o3ieXNDtZfv6I9dINeTU8TRgwY9nybCw4ObBweEPNI0hj1hcQPoVlWX7l-bHhJ0WcXOg2qfyp0Qk4HahVaTpqR7qqs2LehWOHAUMo6dYI0YDxG-0lT_Qk3fNIPZ3rQ_iCfsBt_UaOTROvN5_if8mS6kYGxrRslWm9-iwOs',
+                                                            synopsis: 'Bilbo Bolseiro vive uma vida pacata no Condado, até que o mago Gandalf e uma companhia de anões o levam em uma aventura para recuperar o tesouro guardado pelo dragão Smaug.'
+                                                        });
+                                                    }}
+                                                >
+                                                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+                                                    <div className="w-full sm:w-40 shrink-0 aspect-[2/3] rounded-xl shadow-lg relative z-10" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIbjpIeJYGXR2y66KhsKFqgMCdmyk42kbLTEGXGV0eq1QZSvs2bjxx3F-O--TyYXN05zmb_0gzhBD5IkhzJXO2glmqx6QmnklVyFAIx2o3ieXNDtZfv6I9dINeTU8TRgwY9nybCw4ObBweEPNI0hj1hcQPoVlWX7l-bHhJ0WcXOg2qfyp0Qk4HahVaTpqR7qqs2LehWOHAUMo6dYI0YDxG-0lT_Qk3fNIPZ3rQ_iCfsBt_UaOTROvN5_if8mS6kYGxrRslWm9-iwOs")', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+
+                                                    <div className="flex-1 flex flex-col justify-center gap-4 relative z-10">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full">Lendo Agora</span>
+                                                                <span className="text-[#4c739a] text-xs font-semibold">Atualizado há 2h</span>
+                                                            </div>
+                                                            <h3 className="text-[#0d141b] dark:text-white text-2xl font-bold leading-tight mb-1">O Hobbit</h3>
+                                                            <p className="text-[#4c739a] text-base font-medium">J.R.R. Tolkien</p>
+                                                        </div>
+
+                                                        <div className="w-full bg-[#e7edf3] dark:bg-gray-700 h-3 rounded-full overflow-hidden">
+                                                            <div className="bg-primary h-full rounded-full" style={{ width: '45%' }}></div>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-sm font-bold text-[#4c739a]">
+                                                            <span>45% Concluído</span>
+                                                            <span>Página 135 de 300</span>
+                                                        </div>
+
+                                                        <div className="flex gap-3 mt-2">
+                                                            <button
+                                                                className="flex-1 h-10 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setState(AppState.ACTIVE_READING);
+                                                                }}
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px]">play_arrow</span>
+                                                                Continuar Leitura
+                                                            </button>
+                                                            <button
+                                                                className="h-10 px-4 bg-[#e7edf3] dark:bg-gray-800 text-[#0d141b] dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl font-bold text-sm transition-colors"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setState(AppState.NOTES);
+                                                                }}
+                                                            >
+                                                                Notas
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div className="p-5 rounded-2xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-all">
+                                                        <div className="size-12 rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 bg-cover bg-center" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuATcnA-T31DREBo18MzP8K5YpGIIo1hdJY-Vedr3VC6Jal4nyJ2aeWDm6ixTwf0KQLTO-7jPsnRS-gHCU3DhX51SQO5gG-MqmJd4yWB0romexp-dNoGmkxAnnrg0D4_Ftk4NUSsGeQJkSBhTuhfjKDJP7ZCcBCEWUnkaAdN-pKK7d7WsK7NZNveLjbkiWhUiFWRcUBlDkmnQaLt6EwizN1YaDmPSIFMttOuOv-8BVQdXCTeUuCGsPWTdR0vLWMUDsew8WOG8DbFSFqW")' }}></div>
+                                                        <div className="flex flex-col overflow-hidden">
+                                                            <h4 className="font-bold text-[#0d141b] dark:text-white truncate">Dom Casmurro</h4>
+                                                            <div className="w-full bg-[#e7edf3] dark:bg-gray-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                                                <div className="bg-orange-500 h-full rounded-full" style={{ width: '12%' }}></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-5 rounded-2xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 flex items-center gap-4 cursor-pointer hover:border-primary/30 transition-all">
+                                                        <div className="size-12 rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 bg-cover bg-center" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXrgIHLozW9x8QPNIbqD3micjyca-1rQu36AiMxXohdXva3yUr8p9dvVN6LiPoe4QwOFk3Y16NR-41L3BDbdTGUg8pXX8DRzpIGhiE0crxkDuG5ogaac1HZ8MHIgYK9yDNQ6-kDG30xuBwbo_1NmFoEKmjIu4b_zPdwEgvmRVTd7szDJOMWK2oq1w4m-IRllgf6UAcIeVTdIet2EJYLK6fuTuSAKy2tMA0es2SD5wOS7Ju0uyyijaSFLSZxGdIvR8SKmXgVaMIEBIN")' }}></div>
+                                                        <div className="flex flex-col overflow-hidden">
+                                                            <h4 className="font-bold text-[#0d141b] dark:text-white truncate">Clean Code</h4>
+                                                            <div className="w-full bg-[#e7edf3] dark:bg-gray-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                                                <div className="bg-purple-500 h-full rounded-full" style={{ width: '85%' }}></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Sidebar Section */}
+                                            <div className="flex flex-col gap-6">
+                                                <div className="p-6 rounded-[24px] bg-gradient-to-br from-[#111a22] to-[#1a2632] text-white relative overflow-hidden">
+                                                    <div className="relative z-10">
+                                                        <div className="flex items-center gap-2 mb-4 text-blue-200">
+                                                            <span className="material-symbols-outlined text-[20px]">lightbulb</span>
+                                                            <span className="text-xs font-bold uppercase tracking-wider">Insight do Dia</span>
+                                                        </div>
+                                                        <p className="text-lg font-medium leading-relaxed mb-4">
+                                                            "Um leitor vive mil vidas antes de morrer. O homem que nunca lê vive apenas uma."
+                                                        </p>
+                                                        <p className="text-sm font-bold text-blue-200">— George R.R. Martin</p>
+                                                    </div>
+                                                    <div className="absolute -bottom-4 -right-4 text-white opacity-5">
+                                                        <span className="material-symbols-outlined text-[120px]">format_quote</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-col gap-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <h3 className="font-bold text-[#0d141b] dark:text-white">Próximas Revisões</h3>
+                                                        <button className="text-primary text-xs font-bold hover:underline">Ver deck</button>
+                                                    </div>
+
+                                                    <div className="p-4 rounded-xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 hover:shadow-sm transition-all cursor-pointer group">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <span className="text-xs font-bold text-[#4c739a] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">O Grande Gatsby</span>
+                                                            <span className="size-2 rounded-full bg-red-500"></span>
+                                                        </div>
+                                                        <p className="text-sm font-bold text-[#0d141b] dark:text-white mb-2 group-hover:text-primary transition-colors">Qual o significado da luz verde?</p>
+                                                        <p className="text-xs text-[#4c739a]">Atrasado há 2 dias</p>
+                                                    </div>
+
+                                                    <div className="p-4 rounded-xl bg-white dark:bg-[#111a22] border border-[#e7edf3] dark:border-gray-800 hover:shadow-sm transition-all cursor-pointer group">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <span className="text-xs font-bold text-[#4c739a] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">1984</span>
+                                                            <span className="size-2 rounded-full bg-yellow-500"></span>
+                                                        </div>
+                                                        <p className="text-sm font-bold text-[#0d141b] dark:text-white mb-2 group-hover:text-primary transition-colors">Novilíngua e seus princípios</p>
+                                                        <p className="text-xs text-[#4c739a]">Revisar hoje</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
                         {state === AppState.IDLE && (
                             <motion.div
                                 key="idle"
