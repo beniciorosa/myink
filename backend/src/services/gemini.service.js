@@ -5,11 +5,11 @@ require("dotenv").config({ override: true });
 function debugLog(msg) {
   const timestamp = new Date().toISOString();
   const line = `[${timestamp}] ${msg}`;
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     try {
       fs.appendFileSync('debug_flow.log', line + '\n');
     } catch (e) {
-      console.error("Erro ao escrever no arquivo de log:", e.message);
+      // Silently fail on read-only file systems (like Vercel)
     }
   }
   console.log(line);
