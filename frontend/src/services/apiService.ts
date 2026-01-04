@@ -2,6 +2,9 @@ import axios from 'axios';
 import { BookStudyData, Flashcard, QuizQuestion } from '../types';
 
 const getBaseURL = () => {
+    if (import.meta.env.PROD) {
+        return "/api";
+    }
     const { hostname } = window.location;
     return `http://${hostname}:3001/api`;
 };
