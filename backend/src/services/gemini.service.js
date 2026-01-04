@@ -87,7 +87,7 @@ const getBrasilAPIData = async (isbn) => {
     const cleanIsbn = isbn.replace(/\D/g, '');
     const url = `https://brasilapi.com.br/api/isbn/v1/${cleanIsbn}`;
     debugLog(`Buscando metadata no BrasilAPI: ${url}`);
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (res.ok) {
       const data = await res.json();
       return {
@@ -201,7 +201,10 @@ const searchBooks = async (query, filters = {}) => {
       debugLog(`Google Search S1: ${url1}`);
       const res1 = await fetch(url1);
       const data1 = await res1.json();
-      rawItems = data1.items || [];
+      if (data1.items) {
+        const seenIds = new Set(rawItems.map(it => it.id));
+        data1.items.forEach(it => { if (!seenIds.has(it.id)) rawItems.push(it); });
+      }
 
       // Stage 2: Broad Fallback (Ensure we catch popular editions)
       if (rawItems.length < 25 || intent.type === "SEARCH") {
