@@ -1105,15 +1105,15 @@ const App: React.FC = () => {
                                                 { label: 'Páginas', value: data.pages, icon: BookOpen },
                                                 { label: 'Idioma', value: data.language, icon: Languages }
                                             ].map((item, idx) => (
-                                                <div key={idx} className="flex items-center gap-3 group/meta min-w-[140px]">
-                                                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
-                                                        <item.icon size={20} className="text-blue-500" />
+                                                <div key={idx} className="flex items-center gap-2.5 group/meta min-w-[120px]">
+                                                    <div className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
+                                                        <item.icon size={18} className="text-blue-500" />
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                                                            {item.label}:
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 leading-none mb-0.5">
+                                                            {item.label}
                                                         </span>
-                                                        <span className={`text-[13px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
+                                                        <span className={`text-[12px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
                                                             {item.value || 'N/A'}
                                                         </span>
                                                     </div>
@@ -1131,15 +1131,15 @@ const App: React.FC = () => {
                                                 { label: 'Editora', value: data.publisher, icon: Building2 },
                                                 { label: 'ISBN', value: data.isbn, icon: Hash }
                                             ].map((item, idx) => (
-                                                <div key={idx} className="flex items-center gap-3 group/meta">
-                                                    <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
-                                                        <item.icon size={20} className="text-blue-500" />
+                                                <div key={idx} className="flex items-center gap-2.5 group/meta min-w-[140px]">
+                                                    <div className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 group-hover/meta:border-blue-400 transition-all shrink-0">
+                                                        <item.icon size={18} className="text-blue-500" />
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                                                            {item.label}:
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 leading-none mb-0.5">
+                                                            {item.label}
                                                         </span>
-                                                        <span className={`text-[13px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
+                                                        <span className={`text-[12px] font-bold whitespace-nowrap ${!item.value || item.value === 'Desconhecido' ? 'text-gray-300 dark:text-gray-700 italic' : 'text-gray-900 dark:text-white'}`}>
                                                             {item.value || 'N/A'}
                                                         </span>
                                                     </div>
@@ -1279,10 +1279,10 @@ const App: React.FC = () => {
                                     </div>
 
                                     <div className="flex-grow text-left flex flex-col h-full self-stretch">
-                                        <div className={`relative bg-white dark:bg-gray-800/40 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-500 overflow-hidden ${isReadMore ? 'h-auto' : 'h-72'}`}>
-                                            <div className="p-6 md:p-8" ref={synopsisRef}>
+                                        <div className={`relative bg-white dark:bg-gray-800/40 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-500 overflow-hidden ${isReadMore ? 'h-auto' : 'h-72'} ${state === AppState.SUMMARY ? 'ring-1 ring-blue-50 shadow-blue-900/5' : ''}`}>
+                                            <div className="p-7 md:p-10" ref={synopsisRef}>
                                                 <div className="prose dark:prose-invert max-w-none select-text">
-                                                    <div className="text-[14px] md:text-[15px] text-gray-600 dark:text-gray-400 leading-[1.6] font-sans space-y-4">
+                                                    <div className="text-[15px] md:text-[16px] text-gray-600 dark:text-gray-300 tracking-tight leading-[1.7] font-sans space-y-5">
                                                         {(() => {
                                                             const text = (isSummaryExpanded ? data.aiSummary : data.synopsis || "").replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
                                                             let paras = text.split('\n\n').filter(p => p.trim());
