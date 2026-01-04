@@ -456,6 +456,7 @@ const App: React.FC = () => {
                             exit={{ opacity: 0, y: -10 }}
                             className="max-w-4xl mx-auto text-center pt-8"
                         >
+                            <div className="text-[10px] font-black uppercase tracking-widest text-blue-500/50 mb-4 animate-pulse">v5.2 stable (grid forced)</div>
                             <span className="inline-block px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-wide mb-6 border border-blue-100 dark:border-blue-800">
                                 Refine seu pensamento crítico
                             </span>

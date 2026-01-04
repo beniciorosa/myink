@@ -58,18 +58,18 @@ const classifySearchQuery = async (query) => {
     });
     const prompt = `Analise a intenção de busca do usuário: "${query}".
     Classifique em um destes tipos:
-    1. "TITLE": O usuário busca um livro específico pelo nome.
+    1. "SEARCH": O usuário busca um livro específico pelo nome ou termos.
     2. "AUTHOR": O usuário busca obras de um autor específico.
     3. "PUBLISHER": O usuário busca livros de uma editora específica (ex: "Livros da Intrínseca", "Editora Aleph").
     4. "DISCOVERY": O usuário quer sugestões sobre um tema ou gênero.
     
     Retorne JSON:
-    { "type": "TITLE" | "AUTHOR" | "PUBLISHER" | "DISCOVERY", "value": "termo limpo" }`;
+    { "type": "SEARCH" | "AUTHOR" | "PUBLISHER" | "DISCOVERY", "value": "termo limpo" }`;
 
     const result = await model.generateContent(prompt);
     return JSON.parse(sanitizeJson(result.response.text()));
   } catch (err) {
-    debugLog(`Erro classifySearchQuery: ${err.message}`);
+    debugLog(`Erro classifySearchQuery: ${err.message} `);
     return { type: "TITLE", value: query };
   }
 };
@@ -91,21 +91,21 @@ const searchBooks = async (query, filters = {}) => {
 
     if (intent.type === "AUTHOR" || intent.type === "PUBLISHER" || intent.type === "COMPLEX") {
       let q = '';
-      if (intent.type === "AUTHOR") q = `inauthor:${encodeURIComponent(intent.value)}`;
-      else if (intent.type === "PUBLISHER") q = `inpublisher:${encodeURIComponent(intent.value)}`;
+      if (intent.type === "AUTHOR") q = `inauthor:${encodeURIComponent(intent.value)} `;
+      else if (intent.type === "PUBLISHER") q = `inpublisher:${encodeURIComponent(intent.value)} `;
       else {
         // Busca Complexa (Avançada)
         const parts = [];
-        if (filters.title) parts.push(`intitle:${encodeURIComponent(filters.title)}`);
-        if (filters.author) parts.push(`inauthor:${encodeURIComponent(filters.author)}`);
-        if (filters.publisher) parts.push(`inpublisher:${encodeURIComponent(filters.publisher)}`);
+        if (filters.title) parts.push(`intitle:${encodeURIComponent(filters.title)} `);
+        if (filters.author) parts.push(`inauthor:${encodeURIComponent(filters.author)} `);
+        if (filters.publisher) parts.push(`inpublisher:${encodeURIComponent(filters.publisher)} `);
         if (parts.length === 0) parts.push(encodeURIComponent(query));
         q = parts.join('+');
       }
 
       // Adicionando um pequeno "boost" para o título se disponível
       if (filters.title) {
-        q = `intitle:${encodeURIComponent(filters.title)}+${q}`;
+        q = `intitle:${encodeURIComponent(filters.title)} +${q} `;
       }
 
       const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=15&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
@@ -789,10 +789,10 @@ const fetchOtherEditions = async (title, author) => {
           : true;
         if (!isSameBook) return false;
 
-        const looksPt = ed.language?.startsWith('pt') || titleLower.includes('portugu') || pubLower.includes('brasil') || pubLower.includes('editora') || pubLower.includes('edição');
+        const looksPt = ed.language?.startsWith('pt') || titleLower.includes('portugu') || pubLower.includes('brasil') || pubLower.includes('editora') || pubLower.includes('edição') || pubLower.includes('traduzido');
 
-        // Exclude confirmed foreign only if they don't look like PT
-        if (['en', 'fr', 'ja', 'de', 'it'].includes(ed.language) && !looksPt) {
+        // Exclude foreign languages strictly. Added Spanish (es) and others.
+        if (['en', 'fr', 'ja', 'de', 'it', 'es', 'zh', 'ru'].includes(ed.language) && !looksPt) {
           return false;
         }
         return true;
