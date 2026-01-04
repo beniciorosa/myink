@@ -174,32 +174,41 @@ const searchBooks = async (query, filters = {}) => {
       }));
     } else {
       // Intent TÍTULO ou fallback: Agora sempre retorna MÚLTIPLOS resultados
-      const q = encodeURIComponent(query);
-      const url = `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=30&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
-      debugLog(`URL Busca Geral: ${url}`);
+      // Usamos aspas duplas para forçar a busca exata dos termos no Google Books
+      const q = encodeURIComponent(`"${query}"`);
+      const url = `https://www.googleapis.com/books/v1/volumes?q=intitle:${q}&maxResults=40&orderBy=relevance&langRestrict=pt${key ? `&key=${key}` : ''}`;
+      debugLog(`URL Busca Geral Estrita: ${url}`);
       const res = await fetch(url);
       const data = await res.json();
 
-      books = (data.items || []).map(item => {
-        const cover = (
-          item.volumeInfo.imageLinks?.extraLarge ||
-          item.volumeInfo.imageLinks?.large ||
-          item.volumeInfo.imageLinks?.medium ||
-          item.volumeInfo.imageLinks?.small ||
-          item.volumeInfo.imageLinks?.thumbnail ||
-          item.volumeInfo.imageLinks?.smallThumbnail ||
-          null
-        )?.replace("http://", "https://");
+      const searchTerms = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
 
-        return {
-          id: item.id,
-          title: item.volumeInfo.title,
-          author: item.volumeInfo.authors ? item.volumeInfo.authors[0] : 'Desconhecido',
-          coverUrl: cover,
-          publisher: item.volumeInfo.publisher || 'Desconhecida',
-          isbn: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null
-        };
-      });
+      books = (data.items || [])
+        .map(item => {
+          const cover = (
+            item.volumeInfo.imageLinks?.extraLarge ||
+            item.volumeInfo.imageLinks?.large ||
+            item.volumeInfo.imageLinks?.medium ||
+            item.volumeInfo.imageLinks?.small ||
+            item.volumeInfo.imageLinks?.thumbnail ||
+            item.volumeInfo.imageLinks?.smallThumbnail ||
+            null
+          )?.replace("http://", "https://");
+
+          return {
+            id: item.id,
+            title: item.volumeInfo.title,
+            author: item.volumeInfo.authors ? item.volumeInfo.authors[0] : 'Desconhecido',
+            coverUrl: cover,
+            publisher: item.volumeInfo.publisher || 'Desconhecida',
+            isbn: item.volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier || null
+          };
+        })
+        .filter(b => {
+          // Filtro adicional de segurança: o título deve conter os termos principais da busca
+          const titleLower = b.title.toLowerCase();
+          return searchTerms.every(term => titleLower.includes(term));
+        });
     }
 
     return books;

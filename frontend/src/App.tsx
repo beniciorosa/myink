@@ -32,6 +32,7 @@ const App: React.FC = () => {
     const [isFetchingEditions, setIsFetchingEditions] = useState(false);
     const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [lastQuery, setLastQuery] = useState('');
     const [isDark, setIsDark] = useState(false);
     const [history, setHistory] = useState<any[]>([]);
     const [favorites, setFavorites] = useState<any[]>([]);
@@ -113,6 +114,7 @@ const App: React.FC = () => {
         if (e) e.preventDefault();
 
         let queryToSearch = overrideTitle || bookInput;
+        setLastQuery(queryToSearch);
         const activeFilters = isAdvancedSearchOpen ? searchFilters : {};
 
         // If advanced search is open and fields are filled, we use them
@@ -584,7 +586,9 @@ const App: React.FC = () => {
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-widest">Resultados da Busca</h2>
+                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white uppercase tracking-widest">
+                                        Resultados para: <span className="text-blue-600 dark:text-blue-400">"{lastQuery}"</span>
+                                    </h2>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Encontramos {searchResults.length} livros relevantes.</p>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -642,9 +646,11 @@ const App: React.FC = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                                <h3 className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
-                                                    {book.title}
-                                                </h3>
+                                                <div className="min-h-[3.25rem] flex flex-col justify-start">
+                                                    <h3 className="text-xs font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight mb-1 group-hover:text-blue-600 transition-colors">
+                                                        {book.title}
+                                                    </h3>
+                                                </div>
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                                                     {book.author}
                                                 </p>
