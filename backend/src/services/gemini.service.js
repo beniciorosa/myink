@@ -569,7 +569,7 @@ const fetchBookBasicInfo = async (bookTitle) => {
       genre: extraInfo.genre,
       coverUrl: (extraInfo.coverUrl || "").replace("&edge=curl", "").replace("zoom=1", "zoom=3") || `https://placehold.co/400x600/f8fafc/64748b?text=${encodeURIComponent(extraInfo.resolvedTitle || bookTitle)}`,
       synopsis: extraInfo.synopsis || null,
-      language: LANGUAGE_MAP[extraInfo.language] || extraInfo.language || 'Desconhecido',
+      language: ISO_LANG_MAP[extraInfo.language] || extraInfo.language || 'Desconhecido',
       originalTitle: null,
       publishDate: extraInfo.publishDate || null
     };
